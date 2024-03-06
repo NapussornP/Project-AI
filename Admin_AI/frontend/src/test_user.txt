@@ -1,0 +1,130 @@
+import * as React from 'react';
+import Box from '@mui/material/Box';
+import { DataGrid } from '@mui/x-data-grid';
+import Nav from '../Nav';
+import {useSelector} from "react-redux";
+import styled from 'styled-components';
+import { useState, useEffect } from 'react';
+import img from './../../img_test/images.jpg'
+// "C:\Users\User\OneDrive - kmutnb.ac.th\Desktop\images.jpg"
+
+
+export default function DataGridDemo() {
+    // const { item } = useSelector((state) => state.products) 
+
+    // const rows = item && item.map(item => {
+    //     return {
+    //         id: item._id,
+    //         imageUrl: item.image.url,
+    //         pName: item.name,
+    //         pDEsc: item.desc,
+    //         price: item.price.toLocaleString()
+    //     }
+    // })
+
+    
+    const [products, setProducts] = useState([]);
+
+    useEffect(() => {
+        // Simulate fetching data from Redux store
+        const fetchedData = [
+            { id: 1, imageUrl: img, pName: 'Product 1', pDesc: 'Description 1' },
+            { id: 2, imageUrl: img, pName: 'Product 2', pDesc: 'Description 2' },
+            { id: 3, imageUrl: img, pName: 'Product 3', pDesc: 'Description 3' },
+        ];
+        setProducts(fetchedData);
+    }, []); // Run once on component mount
+
+        const rows = products.map(product => ({
+        id: product.id,
+        imageUrl: product.imageUrl,
+        pName: product.pName,
+        pDesc: product.pDesc
+    }));
+
+    const columns = [
+        { field: 'id', headerName: 'ID', width: 100 },
+        { field: 'imageUrl', headerName: 'Image', width: 270,
+        renderCell: (params) => {
+            return(
+                <ImageContainer>
+                    <img src={params.row.imageUrl} alt="" />
+                </ImageContainer>
+            )
+        }
+    },
+        { field: 'pName', headerName: 'Name', width: 270 },
+
+        {
+          field: 'actions',
+          headerName: 'Actions',
+          sortable: false,
+          width: 170,
+          renderCell: (params) => {
+            return(
+                <Actions>
+                    <Delete>Delete</Delete>
+                    <Add>Add</Add>
+                </Actions> 
+                
+            )
+         }        
+        },
+    ];
+
+    return (
+        <section className="flex gap-6">
+            <Nav/>
+            <h1>ADD USER</h1>
+
+            <div className="m-4 text-xl text-gray-900 font-semibold">
+                <Box sx={{ height: 400, width: '100%' }}>
+                    <DataGrid
+                        rows={rows}
+                        columns={columns}
+                        initialState={{
+                        pagination: {
+                            paginationModel: {
+                            pageSize: 5,
+                            },
+                        },
+                        }}
+                        pageSizeOptions={[5]}
+                        checkboxSelection
+                        disableRowSelectionOnClick
+                    />
+                </Box>         
+            </div>
+        </section>
+        
+    );
+}
+
+const ImageContainer = styled.div`
+    img {
+        height: 40px;
+    }
+`;
+
+const Actions = styled.div`
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+`;
+
+const Button = styled.button`
+    border: none;
+    outline: none;
+    padding: 3px 5px;
+    color: white;
+    border-radius: 3px;
+    cursor: pointer;
+`;
+
+const Delete = styled(Button)`
+    background-color: red;
+`;
+
+const Add = styled(Button)`
+    background-color: green;
+`;

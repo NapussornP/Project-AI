@@ -1,0 +1,12 @@
+.muiSearch {
+    height: 400px;
+    width: auto;
+    margin-top: 2%;
+}
+
+.searchCon{
+    
+    display: flex;
+    justify-content: center;
+    
+}

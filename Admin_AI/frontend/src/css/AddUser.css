@@ -1,0 +1,15 @@
+.muidtb-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 1200px; /* Set the desired width */
+    /* margin: 0 auto; Center horizontally */
+}
+
+.center{
+    margin-top: 5%;
+}
+
+button{
+    text-align: right;
+}

@@ -1,5 +1,4 @@
 import React from "react";
-// import "./App.css";
 import Nav from "../Nav";
 import {
   makeStyles,
@@ -8,10 +7,7 @@ import {
 } from "@material-ui/core";
 import { createTheme } from '@material-ui/core/styles'
 import CSSearch from './../component/CSSearch'
-// import Header from "../components/Header";
-// import PageHeader from "../components/PageHeader";
 
-// import Employees from "../pages/Employees/Employees";
 
 const theme = createTheme({
   palette: {

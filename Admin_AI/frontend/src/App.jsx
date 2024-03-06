@@ -6,7 +6,7 @@ import Schedule from "./pages/Schedule";
 import Search from "./pages/Search";
 import AddUser from "./pages/AddUser"
 import User from "./pages/User"
-import CropI from './img/Crop'
+
 
 const App = () => {
   return (

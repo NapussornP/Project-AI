@@ -14,12 +14,9 @@ import {
   InputAdornment,
 } from "@material-ui/core";
 import PageHeader from './UserPageHeader'
-import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from "@material-ui/icons/Add";
 import UserForm from './UserForm'
-import Button from '@mui/material/Button';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Swal from 'sweetalert2';
+import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 
 const useStyles = makeStyles((theme) => ({
   pageContent: {
@@ -83,7 +80,7 @@ export default function Users() {
       <PageHeader
         title="Search History"
         subTitle="Computer Science and Information KMUTNB"
-        icon={<SearchIcon fontSize="large" />}
+        icon={<PersonSearchIcon fontSize="large" />}
       />
       <Paper className={classes.pageContent}>
         <Toolbar>
@@ -100,14 +97,14 @@ export default function Users() {
             onChange={handleSearch}
           />
           <Controls.Button
-            text="Add New"
+            text="!!search img!!"
             variant="outlined"
-            startIcon={<AddIcon />}
+            // startIcon={<AddIcon />}
             className={classes.newButton}
-            onClick={() => {
-              setOpenPopup(true);
-              setRecordForEdit(null);
-            }}
+            // onClick={() => {
+            //   setOpenPopup(true);
+            //   setRecordForEdit(null);
+            // }}
           />
         </Toolbar>
         <TblContainer style={{ maxHeight: '600px' }}>

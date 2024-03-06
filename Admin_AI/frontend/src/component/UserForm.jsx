@@ -69,7 +69,7 @@ export default function UseForm(props) {
             imgbase64: base64URL, // Access the base64URL from state
           });
 
-        window.alert('Schedule submitted successfully');
+        window.alert('Add new user successfully');
         window.location.reload();
         
           console.log('created successfully');

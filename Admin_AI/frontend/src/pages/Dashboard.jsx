@@ -1,44 +1,65 @@
 import React from "react";
+// import "./App.css";
 import Nav from "../Nav";
-import Chart from 'react-apexcharts';
-import ApexCharts from 'apexcharts';
-import { useState, useEffect } from 'react';
+import {
+  makeStyles,
+  CssBaseline,
+  ThemeProvider,
+} from "@material-ui/core";
+import { createTheme } from '@material-ui/core/styles'
+import ShowDashboard from './../component/ShowDashboard'
 
-function Dashboard()
-{
-    const [stackedBarChartData, setStackedBarChartData] = useState(null);
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#333996",
+      light: "#3c44b126",
+    },
+    secondary: {
+      main: "#f83245",
+      light: "#f8324526",
+    },
+    background: {
+      default: "#f4f5fd",
+    },
+  },
+  overrides: {
+    MuiAppBar: {
+      root: {
+        transform: "translateZ(0)",
+      },
+    },
+  },
+  props: {
+    MuiIconButton: {
+      disableRipple: true,
+    },
+  },
+});
 
-    useEffect(() => {
-        // เรียก API จาก Backend
-        fetch('http://localhost:8081/dashboard')
-            .then(response => response.json())
-            .then(data => setStackedBarChartData(data))
-            .catch(error => console.error('Error fetching data:', error));
-    }, []);
-    return(
-      <section className="flex gap-6">
-        <Nav/>
-        <div className="m-3 text-xl text-gray-900 font-semibold">
-          {/* REACT TAILWIND */}
-          <React.Fragment>
-            <div className="container-fluid mb-3 text-center">
-                <h2>Stacked bar chart in react using apexcharts</h2>
-                <div className='d-flex align-items-center justify-content-center'>
-                    {stackedBarChartData && (
-                        <Chart
-                            type="bar"
-                            width={1349}
-                            height={300}
-                            series={stackedBarChartData.series}
-                            options={stackedBarChartData.options}
-                        />
-                    )}
-                </div>
-            </div>
-        </React.Fragment>
+const useStyles = makeStyles({
+  appMain: {
+    paddingLeft: "320px",
+    width: "100%",
+  },
+});
+
+function App() {
+  const classes = useStyles();
+
+  return (
+    <section className="flex gap-6">
+        <Nav />
+        <ThemeProvider theme={theme}>
+      
+        <div className={classes.appMain}>
+          <ShowDashboard/>
         </div>
-      </section>
-    );
+        <CssBaseline />
+        </ThemeProvider>
+    </section>
+    
+  );
 }
-export default Dashboard;
 
+export default App;

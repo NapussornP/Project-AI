@@ -18,7 +18,7 @@ app.get('/' , (re, res) => {
     return res.json("From Backend Side")
 })
 
-app.get('/transaction', (req, res) => {
+app.get('/Search', (req, res) => {
     // const sql = "SELECT * FROM transaction"
     // const sql = "SELECT t.Date_time, t.CSGender, t.CSAge, u.CSName AS UserName, e.EmoName AS EmotionName, t.S_Pic, t.L_Pic FROM Transaction t JOIN `CSUser` u ON t.CSID = u.CSID JOIN Emotion e ON t.EmoID = e.EmoID"
     const sql = `

@@ -57,12 +57,10 @@ function App() {
         <ThemeProvider theme={theme}>
       
         <div className={classes.appMain}>
-        
-
-        <CSUser/>
-      </div>
-      <CssBaseline />
-    </ThemeProvider>
+          <CSUser/>
+        </div>
+        <CssBaseline />
+        </ThemeProvider>
     </section>
     
   );

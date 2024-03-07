@@ -29,6 +29,7 @@
     "bootstrap": "^5.3.3",
     "mui-datatables": "^4.3.0",
     "papaparse": "^5.4.1",
+    "path": "^0.12.7",
     "react": "^18.2.0",
     "react-apexcharts": "^1.4.1",
     "react-dom": "^18.0.0",

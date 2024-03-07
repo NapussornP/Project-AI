@@ -149,13 +149,19 @@ export default function Users() {
           <TableBody>
             {recordsAfterPagingAndSorting().map((item) => (
                 // console.log('Item:', item),
+                console.log('`../frontend/img_test/',item.CSID),
               <TableRow key={item.id}>
                 <TableCell>{' '}</TableCell>
                 <TableCell>{item.CSName}</TableCell>
                 <TableCell>{item.Role}</TableCell>
                 <TableCell>
-                <img
+                {/* <img
                     src={`${item.CSImg}`}
+                    alt="User Image"
+                    style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+                  /> */}
+                  <img
+                    src={`../../../img_test/${item.CSID}.jpg`}
                     alt="User Image"
                     style={{ width: '50px', height: '50px', borderRadius: '50%' }}
                   />

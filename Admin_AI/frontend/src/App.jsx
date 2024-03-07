@@ -4,7 +4,7 @@ import Login from "./Login";
 import Dashboard from "./pages/Dashboard";
 import Schedule from "./pages/Schedule";
 import Search from "./pages/Search";
-import AddUser from "./pages/AddUser"
+// import AddUser from "./pages/AddUser"
 import User from "./pages/User"
 
 

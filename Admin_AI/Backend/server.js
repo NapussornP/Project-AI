@@ -1,15 +1,50 @@
 const express = require('express');
 const mysql = require('mysql')
 const cors = require('cors')
-const bodyParser = require('body-parser');
+const multer  = require('multer');
+const path = require('path'); 
 
 const app = express()
 app.use(express.json())
 app.use(cors())
 
-app.use(bodyParser.json({ limit: '100mb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '100mb' }));
-app.use(express.json());
+
+
+const storage = multer.memoryStorage(); 
+
+const upload = multer({ storage: storage });
+
+app.post('/upload', upload.single('image'), function (req, res, next) {
+  const file = req.file;
+
+  
+  const nextCSIDQuery = 'SELECT CSID + 1 AS NextCSID FROM CSUser ORDER BY CSID DESC LIMIT 1';
+
+  db.query(nextCSIDQuery, (err, results) => {
+    if (err) {
+      console.error('Error getting the next CSID:', err);
+      res.status(500).json({ error: 'Error getting the next CSID from the database' });
+    } else {
+      
+      const nextCSID = results[0] ? results[0].NextCSID : 1;
+      console.log('Query results:', results);
+    //   const nextCSID = results[0].NextCSID ;
+    
+
+      const filename = nextCSID + path.extname(file.originalname);
+
+      // Save 
+      const destination = path.join('../frontend/img_test/', filename);
+      require('fs').writeFileSync(destination, file.buffer);
+    
+      console.log(destination)
+      console.log('File saved successfully:', filename);
+      res.send(destination);
+
+      
+    }
+  });
+})
 
 
 
@@ -89,11 +124,11 @@ app.delete('/deleteUser/:userId', (req, res) => {
 });
 
 app.post('/AddUser', (req, res) => {
-    const { CSName, role, imgbase64 } = req.body;
-  console.log(req.body)
+    const { CSName, role, imgpath } = req.body;
+    console.log(req.body)
     const sql = 'INSERT INTO CSUser (CSName, Role, CSImg) VALUES (?, ?, ?)';
   
-    db.query(sql, [CSName, role, imgbase64], (error, results) => {
+    db.query(sql, [CSName, role, imgpath], (error, results) => {
       if (error) {
         console.error('Error inserting user:',error);
         res.status(500).json({ message: 'Failed to add user' });
@@ -187,16 +222,16 @@ app.get('/dashboard', (req, res) => {
 });
 
 
-app.post('/createAd', (req, res) => {
-    const { AdName, AdUsername, AdPassword } = req.body;
+// app.post('/createAd', (req, res) => {
+//     const { AdName, AdUsername, AdPassword } = req.body;
   
-    const sql = 'INSERT INTO admin (AdName, AdUsername, AdPassword) VALUES (?, ?, ?)';
-    db.query(sql, [AdName, AdUsername, AdPassword], (err, result) => {
-      if (err) throw err;
-      console.log('Ad created:', result);
-      res.send('Ad created successfully');
-    });
-  });
+//     const sql = 'INSERT INTO admin (AdName, AdUsername, AdPassword) VALUES (?, ?, ?)';
+//     db.query(sql, [AdName, AdUsername, AdPassword], (err, result) => {
+//       if (err) throw err;
+//       console.log('Ad created:', result);
+//       res.send('Ad created successfully');
+//     });
+//   });
 
 app.post('/insertSchedule', async (req, res) => {
     const { data, courseDetails } = req.body;

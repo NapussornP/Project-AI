@@ -21,6 +21,7 @@ import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 const useStyles = makeStyles((theme) => ({
   pageContent: {
     padding: theme.spacing(3),
+    // width:'auto',
     height: 'auto'
   },
   searchInput: {
@@ -38,7 +39,7 @@ const headCells = [
     { id : 'Time', label: 'Time'},
     { id: 'UserName', label: 'Name' },
     { id: 'CSGender', label: 'Gender' },
-    { id: 'EmotionName', label: 'Emotion' },
+    // { id: 'EmotionName', label: 'Emotion' },
     { id: 'S_Pic', label: 'Image' },
     { id: 'L_Pic', label: 'Image'}
 ];
@@ -119,7 +120,7 @@ export default function Users() {
                 <TableCell>{ new Date(item.Date_time).toLocaleTimeString("en-GB")}</TableCell>
                 <TableCell>{item.UserName}</TableCell>
                 <TableCell>{item.CSGender}</TableCell>
-                <TableCell>{item.EmotionName}</TableCell>
+                {/* <TableCell>{item.EmotionName}</TableCell> */}
                 <TableCell>
                 <img
                     src={`${item.S_Pic}`}

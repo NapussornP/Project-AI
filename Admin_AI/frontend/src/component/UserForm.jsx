@@ -87,44 +87,74 @@ export default function UseForm(props) {
     
 
 
-      const  getBase64 = file => {
-        return new Promise(resolve => {
-          let fileInfo;
+    const getBase64 = (file) => {
+        return new Promise((resolve) => {
           let baseURL = "";
-          // Make new FileReader
           let reader = new FileReader();
-    
-          // Convert the file to base64 text
+      
           reader.readAsDataURL(file);
-    
-          // on reader load somthing...
+      
           reader.onload = () => {
-            // Make a fileInfo Object
-            console.log("Called", reader);
-            baseURL = reader.result;
-            console.log(baseURL);
-            resolve(baseURL);
+            let img = new Image();
+            img.src = reader.result;
+      
+            img.onload = () => {
+              // ปรับขนาดของรูปภาพก่อนแปลงเป็น Base64
+              const MAX_WIDTH = 800; // กำหนดความกว้างสูงสุด
+              const MAX_HEIGHT = 600; // กำหนดความสูงสูงสุด
+      
+              let canvas = document.createElement("canvas");
+              let ctx = canvas.getContext("2d");
+      
+              let width = img.width;
+              let height = img.height;
+      
+              if (width > height) {
+                if (width > MAX_WIDTH) {
+                  height *= MAX_WIDTH / width;
+                  width = MAX_WIDTH;
+                }
+              } else {
+                if (height > MAX_HEIGHT) {
+                  width *= MAX_HEIGHT / height;
+                  height = MAX_HEIGHT;
+                }
+              }
+      
+              canvas.width = width;
+              canvas.height = height;
+      
+              ctx.drawImage(img, 0, 0, width, height);
+      
+              // แปลงรูปภาพที่ถูกปรับขนาดเป็น Base64
+              baseURL = canvas.toDataURL("image/jpeg");
+      
+              resolve(baseURL);
+            };
           };
-          console.log(fileInfo);
         });
       };
       
+      
     const handleImageChange = (event) => {
-    const file_2 = event.target.files[0];
-    setSelectedImage(URL.createObjectURL(file_2));
+        const file_2 = event.target.files[0];
+        setSelectedImage(URL.createObjectURL(file_2));
 
-    console.log(event.target.files[0]);
-    let file = event.target.files[0];
+        console.log(event.target.files[0]);
+        let file = event.target.files[0];
 
-    getBase64(file)
-        .then((result) => {
-        file['base64'] = result;
-        console.log('File Is', file);
-        setBase64URL(result); // Set the base64URL in state
-        })
-        .catch((err) => {
-        console.log(err);
-        });
+        console.log("File Size is: ", Math.round(file.size / 1024) + ' KB'); // เพิ่มบรรทัดนี้เพื่อดูขนาดไฟล์
+
+
+        getBase64(file)
+            .then((result) => {
+            file['base64'] = result;
+            console.log('File Is', file);
+            setBase64URL(result); // Set the base64URL in state
+            })
+            .catch((err) => {
+            console.log(err);
+            });
     };
     
     const [base64URL, setBase64URL] = useState('');

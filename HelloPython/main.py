@@ -1,104 +1,156 @@
-from flask import Flask, Response, jsonify
+from flask import Flask, Response
 from flask_cors import CORS
 import cv2
 from deepface import DeepFace
 import threading
-import mysql.connector
+from pathlib import Path
+import os
+from datetime import datetime
 import base64
+import mysql.connector
 
 app = Flask(__name__)
 CORS(app)
 
-
-db_connection = mysql.connector.connect(
-    host="localhost",
-    user='root',
-    password='',
-    database='ai'
-)
-cursor = db_connection.cursor()
-
-
+# Initialize camera
 video = cv2.VideoCapture(0)
 
+connection = mysql.connector.connect(
+  host="localhost",
+  user="root",
+  password="",
+  database="ai"
+)
+
+db = connection.cursor()
+
 if not video.isOpened():
-    print("Error open the camera.")
+    print("Error: Could not open video.")
     exit()
 
+# Load Haar Cascade for face detection
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-emotion_info = {"emotion": "", "age": "", "gender": ""}
+# Set up paths
+current_directory = Path(__file__).parent
+db_path = current_directory.parent.parent / 'AI' / 'Admin_AI' / 'frontend' / 'img_test'
+# db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "a")
+print('Check Path:', db_path)
 
-def detect_emotion(face_roi, x, y, w, h, img_flipped):
+def select_emoId(emoName):
+    emo_id_querry = f"SELECT EmoID FROM emotion WHERE EmoName = '{emoName}' "
     try:
-        # analysis = DeepFace.analyze(face_roi, actions=['emotion', 'age', 'gender'], enforce_detection=False)
-        # emotion = analysis[0]['dominant_emotion']
-        # age = analysis[0]['age']
-        # gender = analysis[0]['dominant_gender']
-
-
-        img_test_path = '../frontend/img_test' 
-        result = DeepFace.find(face_roi, db_path=img_test_path, enforce_detection=False)
-
+        db.execute(emo_id_querry)
+        result = db.fetchone()
         if result:
-            analysis = DeepFace.analyze(face_roi, actions=['emotion', 'age', 'gender'], enforce_detection=False)
-            emotion = analysis[0]['dominant_emotion']
-            age = analysis[0]['age']
-            gender = analysis[0]['dominant_gender']
-            print("Face found in img_test folder!")
+            emo_id = result[0]
+            return emo_id
+    except mysql.connector.Error as err:
+        print('Error db: ', err)
+    return None
+
+def insert_db(datetime, gender, age, cs_id, emotion, s_pic, l_pic ):
+    
+    emo_id = select_emoId(emotion)
+
+    small_img = base64.b64encode(cv2.imencode('.jpg', s_pic)[1]).decode()
+    large_img = base64.b64encode(cv2.imencode('.jpg', l_pic)[1]).decode()
+    
+    sql = '''INSERT INTO transaction (Date_time, CSGender, CSAge, CSID, EmoID, S_Pic, L_Pic)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)'''
+    
+    value = (datetime, gender, age, cs_id,emo_id,small_img,large_img)
+    print('Querry:  ',datetime, gender, age, cs_id,emo_id)
+
+    try:
+        db.execute(sql,value)
+        connection.commit()
+    except db.connector.Error as err:
+        print('Error db: ',err)
+
+
+
+def face_detection(img_face, x, y, w, h, img_full_flip, saved_faces, db_path):
+    try:
+
+        datetime_detect = datetime.now()
+        print(f"Date taken for detection: {datetime_detect} ")
+
+
+        detec_emo = DeepFace.analyze(img_face, actions=['emotion', 'age', 'gender'], enforce_detection=False)
+        emotion = detec_emo[0]['dominant_emotion']
+        age = detec_emo[0]['age']
+        gender = detec_emo[0]['dominant_gender']
+        print(f"Emotion: {emotion}, Age: {age}, Gender: {gender}")
+
+        face_recognition = DeepFace.find(img_face, db_path=db_path, enforce_detection=False)
+
+        if face_recognition and not face_recognition[0].empty:
+
+            print('Match')
+
+            first_result = face_recognition[0]
+            similar_face_path = first_result.iloc[0]['identity']
+            similar_face_path = os.path.normpath(similar_face_path)
+            print('Path facee: ',similar_face_path)
+            cs_id,_ = os.path.splitext(os.path.basename(similar_face_path))
+
+            print('name is: ', cs_id)
+
         else:
-            print('Face not match')
+            print('Not match any')
+            cs_id = 0
 
-        emotion_info["emotion"] = emotion
-        emotion_info["age"] = age
-        emotion_info["gender"] = gender
-        
-        # Print or handle the predicted results as needed
-        print("Emotion:", emotion)
-        print("Age:", age)
-        print("Gender:", gender)
+        insert_db(datetime_detect, gender, age, cs_id, emotion,img_face, img_full_flip) #insert into db
 
-        # You can perform further actions with the predictions as needed
+        face_id = f"{x}-{y}-{w}-{h}"
+        print('faceid:' ,face_id)
+        saved_faces.add(face_id)
+
     except Exception as e:
-        print("Error in processing:", e)
+        print("Error is :", e)
 
-
-def gen_frames(video):
+# Function to generate video frames
+def get_frames(video, saved_faces, db_path):
+    trackers = []
+    saved_faces = set() 
     while True:
-        success, frame = video.read()
+        success, img = video.read()
         if not success:
             break
 
-        img_resized = cv2.resize(frame, (640, 480))
-        img_flipped = cv2.flip(img_resized, 1)
+        img_resized = cv2.resize(img, (650, 450))
+        img_full_flip = cv2.flip(img_resized, 1)
 
-        gray_scale = cv2.cvtColor(img_flipped, cv2.COLOR_BGR2GRAY)
+        updated_trackers = []
+        for tracker in trackers:
+            success, _ = tracker.update(img_full_flip)
+            if success:
+                updated_trackers.append(tracker)
+        trackers = updated_trackers
+
+        gray_scale = cv2.cvtColor(img_full_flip, cv2.COLOR_BGR2GRAY)
         faces = face_cascade.detectMultiScale(gray_scale, 1.1, 4)
 
         for (x, y, w, h) in faces:
-            cv2.rectangle(img_flipped, (x, y), (x + w, y + h), (255, 0, 0), 2)
+            cv2.rectangle(img_full_flip, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
-            face_roi = img_flipped[y:y + h, x:x + w]
+            if not trackers:
+                img_face = img_full_flip[y:y+h, x:x+w]
+                threading.Thread(target=face_detection, args=(img_face, x, y, w, h, img_full_flip, saved_faces, db_path)).start()
+                tracker = cv2.TrackerKCF_create()
+                tracker.init(img_full_flip, (x, y, w, h))
+                trackers.append(tracker)
 
-            # Use threading to run detect_emotion asynchronously
-            threading.Thread(target=detect_emotion, args=(face_roi, x, y, w, h, img_flipped)).start()
-
-        ret, buffer = cv2.imencode('.jpg', img_flipped)
+        ret, buffer = cv2.imencode('.jpg', img_full_flip)
         frame = buffer.tobytes()
         yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
-
+# Route to serve video feed
 @app.route('/video_feed')
 def video_feed():
-    return Response(gen_frames(video),
+    return Response(get_frames(video, set(), db_path),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
-
-
-@app.route('/emotion_info')
-def get_emotion_info():
-    # Return emotion, age, and gender as JSON
-    return jsonify(emotion_info)
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

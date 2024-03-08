@@ -3,9 +3,21 @@ from flask_cors import CORS
 import cv2
 from deepface import DeepFace
 import threading
+import mysql.connector
+import base64
 
 app = Flask(__name__)
 CORS(app)
+
+
+db_connection = mysql.connector.connect(
+    host="localhost",
+    user='root',
+    password='',
+    database='ai'
+)
+cursor = db_connection.cursor()
+
 
 video = cv2.VideoCapture(0)
 
@@ -19,11 +31,23 @@ emotion_info = {"emotion": "", "age": "", "gender": ""}
 
 def detect_emotion(face_roi, x, y, w, h, img_flipped):
     try:
-        analysis = DeepFace.analyze(face_roi, actions=['emotion', 'age', 'gender'], enforce_detection=False)
-        emotion = analysis[0]['dominant_emotion']
-        age = analysis[0]['age']
-        gender = analysis[0]['dominant_gender']
+        # analysis = DeepFace.analyze(face_roi, actions=['emotion', 'age', 'gender'], enforce_detection=False)
+        # emotion = analysis[0]['dominant_emotion']
+        # age = analysis[0]['age']
+        # gender = analysis[0]['dominant_gender']
 
+
+        img_test_path = '../frontend/img_test' 
+        result = DeepFace.find(face_roi, db_path=img_test_path, enforce_detection=False)
+
+        if result:
+            analysis = DeepFace.analyze(face_roi, actions=['emotion', 'age', 'gender'], enforce_detection=False)
+            emotion = analysis[0]['dominant_emotion']
+            age = analysis[0]['age']
+            gender = analysis[0]['dominant_gender']
+            print("Face found in img_test folder!")
+        else:
+            print('Face not match')
 
         emotion_info["emotion"] = emotion
         emotion_info["age"] = age
@@ -41,11 +65,11 @@ def detect_emotion(face_roi, x, y, w, h, img_flipped):
 
 def gen_frames(video):
     while True:
-        success, img = video.read()
+        success, frame = video.read()
         if not success:
             break
 
-        img_resized = cv2.resize(img, (640, 480))
+        img_resized = cv2.resize(frame, (640, 480))
         img_flipped = cv2.flip(img_resized, 1)
 
         gray_scale = cv2.cvtColor(img_flipped, cv2.COLOR_BGR2GRAY)

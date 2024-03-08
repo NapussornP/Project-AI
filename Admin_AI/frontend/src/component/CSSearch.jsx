@@ -35,6 +35,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const headCells = [
+    // { id : 'SID', label: 'Id'},
     { id : 'Date_time', label: 'Date'},
     { id : 'Time', label: 'Time'},
     { id: 'UserName', label: 'Name' },
@@ -115,7 +116,7 @@ export default function Users() {
           <TableBody>
             {recordsAfterPagingAndSorting().map((item) => (
                 console.log('Item:', item),
-              <TableRow key={item.Date_time}>
+              <TableRow key={item.SID}>
                 <TableCell>{new Date(item.Date_time).toLocaleDateString("en-GB")}</TableCell>
                 <TableCell>{ new Date(item.Date_time).toLocaleTimeString("en-GB")}</TableCell>
                 <TableCell>{item.UserName}</TableCell>
@@ -123,16 +124,16 @@ export default function Users() {
                 {/* <TableCell>{item.EmotionName}</TableCell> */}
                 <TableCell>
                 <img
-                    src={`${item.S_Pic}`}
+                    src={`data:image/jpeg;base64,${item.S_Pic}`}
                     alt="User Image"
                     style={{ width: '100px', height: 'auto', borderRadius:'10px'}}
                   />
                 </TableCell>
                 <TableCell>
                 <img
-                    src={`${item.L_Pic}`}
+                    src={`data:image/jpeg;base64,${item.L_Pic}`}
                     alt="User Image"
-                    style={{ width: '100px', height: 'auto', borderRadius:'10px'}}
+                    style={{ width: '130px', height: 'auto', borderRadius:'10px'}}
                   />
                 </TableCell>
                         

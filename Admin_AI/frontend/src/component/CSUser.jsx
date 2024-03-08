@@ -21,6 +21,7 @@ import Button from '@mui/material/Button';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Swal from 'sweetalert2';
 
+
 const useStyles = makeStyles((theme) => ({
   pageContent: {
     padding: theme.spacing(3),
@@ -149,7 +150,7 @@ export default function Users() {
           <TableBody>
             {recordsAfterPagingAndSorting().map((item) => (
                 // console.log('Item:', item),
-                console.log('`../frontend/img_test/',item.CSID),
+                // console.log('../../../../img_test/',item.CSID),
               <TableRow key={item.id}>
                 <TableCell>{' '}</TableCell>
                 <TableCell>{item.CSName}</TableCell>
@@ -161,7 +162,7 @@ export default function Users() {
                     style={{ width: '50px', height: '50px', borderRadius: '50%' }}
                   /> */}
                   <img
-                    src={`../../../img_test/${item.CSID}.jpg`}
+                    src={`./../../../img_test/${item.CSID}.jpg`}
                     alt="User Image"
                     style={{ width: '50px', height: '50px', borderRadius: '50%' }}
                   />

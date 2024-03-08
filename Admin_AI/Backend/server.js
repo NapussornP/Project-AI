@@ -65,23 +65,24 @@ app.get('/Search', (req, res) => {
     // const sql = "SELECT * FROM transaction"
     // const sql = "SELECT t.Date_time, t.CSGender, t.CSAge, u.CSName AS UserName, e.EmoName AS EmotionName, t.S_Pic, t.L_Pic FROM Transaction t JOIN `CSUser` u ON t.CSID = u.CSID JOIN Emotion e ON t.EmoID = e.EmoID"
     const sql = `
-        SELECT
-            t.Date_time,
-            t.CSGender,
-            t.CSAge,
-            u.CSName AS UserName,
-            e.EmoName AS EmotionName,
-            t.S_Pic,
-            t.L_Pic
-        FROM
-            Transaction t
-        JOIN
-            CSUser u ON t.CSID = u.CSID
-        JOIN
-            Emotion e ON t.EmoID = e.EmoID
-        ORDER BY 
-            t.Date_time
-    `;
+                SELECT
+                t.Date_time,
+                t.CSGender,
+                t.CSAge,
+                CASE WHEN t.CSID = 0 THEN 'Unknown' ELSE u.CSName END AS UserName,
+                e.EmoName AS EmotionName,
+                t.S_Pic,
+                t.L_Pic
+            FROM
+                Transaction t
+            LEFT JOIN
+                CSUser u ON t.CSID = u.CSID
+            JOIN
+                Emotion e ON t.EmoID = e.EmoID
+            ORDER BY 
+                t.Date_time;
+                `;
+    
     db.query(sql, (err, data) => {
         if(err) return res.json(err);
         return res.json(data)

@@ -125,14 +125,14 @@ export default function Users() {
                 <img
                     src={`${item.S_Pic}`}
                     alt="User Image"
-                    style={{ width: '100px', height: 'auto'}}
+                    style={{ width: '100px', height: 'auto', borderRadius:'10px'}}
                   />
                 </TableCell>
                 <TableCell>
                 <img
                     src={`${item.L_Pic}`}
                     alt="User Image"
-                    style={{ width: '100px', height: 'auto'}}
+                    style={{ width: '100px', height: 'auto', borderRadius:'10px'}}
                   />
                 </TableCell>
                         

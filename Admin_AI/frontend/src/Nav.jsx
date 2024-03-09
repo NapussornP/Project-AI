@@ -21,7 +21,7 @@ const Nav = () => {
         className={`bg-[#0e0e0e] min-h-screen ${
           open ? "w-72" : "w-16 h-40"
         } duration-500 text-gray-100 px-4`}
-        style={{ minHeight: open ? '100vh' : '110vh'}}
+        style={{ minHeight: open ? '100vh' : '120vh'}}
       >
         <div className="py-3 flex justify-end">
           <HiMenuAlt3

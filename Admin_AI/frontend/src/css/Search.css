@@ -10,3 +10,10 @@
     justify-content: center;
     
 }
+.makeStyles-table-5{
+    width: 200px;
+}
+
+.MuiTableBody-root{
+    width: 100px;
+}

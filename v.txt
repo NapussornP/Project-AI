@@ -1,0 +1,13 @@
+.\venv\Scripts\Activate
+
+source venv/Scripts/activate
+
+set TF_ENABLE_ONEDNN_OPTS=0
+
+Name: deepface
+Version: 0.0.85
+
+Name: tensorflow
+Version: 2.16.1
+
+keras-3.0.5

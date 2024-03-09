@@ -17,6 +17,7 @@ import PageHeader from './UserPageHeader'
 import AddIcon from "@material-ui/icons/Add";
 import UserForm from './UserForm'
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
+import './../css/Search.css'
 
 const useStyles = makeStyles((theme) => ({
   pageContent: {
@@ -40,7 +41,8 @@ const headCells = [
     { id : 'Time', label: 'Time'},
     { id: 'UserName', label: 'Name' },
     { id: 'CSGender', label: 'Gender' },
-    // { id: 'EmotionName', label: 'Emotion' },
+    { id: 'CSAge', label: 'Age' },
+    { id: 'EmotionName', label: 'Emotion' },
     { id: 'S_Pic', label: 'Image' },
     { id: 'L_Pic', label: 'Image'}
 ];
@@ -109,11 +111,17 @@ export default function Users() {
             // }}
           />
         </Toolbar>
-        <TblContainer style={{ maxHeight: '600px' }}>
+        <TblContainer style={{ maxHeight: '600px'}}>
             
           <TblHead />
           
-          <TableBody>
+          <TableBody className="a"
+            style={{ 
+              width: '200px', 
+              maxWidth: `${!open ? '300px' : 'none'}`, // ปรับตามที่คุณต้องการ
+              // overflowY: `${!open ? 'auto' : 'visible'}` // ปรับตามที่คุณต้องการ
+            }}
+          >
             {recordsAfterPagingAndSorting().map((item) => (
                 console.log('Item:', item),
               <TableRow key={item.SID}>
@@ -121,7 +129,8 @@ export default function Users() {
                 <TableCell>{ new Date(item.Date_time).toLocaleTimeString("en-GB")}</TableCell>
                 <TableCell>{item.UserName}</TableCell>
                 <TableCell>{item.CSGender}</TableCell>
-                {/* <TableCell>{item.EmotionName}</TableCell> */}
+                <TableCell>{item.CSAge}</TableCell>
+                <TableCell>{item.EmotionName}</TableCell>
                 <TableCell>
                 <img
                     src={`data:image/jpeg;base64,${item.S_Pic}`}

@@ -1,13 +1,17 @@
-from flask import Flask, Response
+from flask import Flask, Response,jsonify
 from flask_cors import CORS
 import cv2
 from deepface import DeepFace
 import threading
 from pathlib import Path
 import os
+# import tensorflow as tf
 from datetime import datetime
 import base64
 import mysql.connector
+# import warnings
+# warnings.filterwarnings("ignore", category=DeprecationWarning, module="tensorflow")
+
 
 app = Flask(__name__)
 CORS(app)
@@ -151,6 +155,57 @@ def get_frames(video, saved_faces, db_path):
 def video_feed():
     return Response(get_frames(video, set(), db_path),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+from flask import jsonify
+
+@app.route('/HelloHowAreYou')
+def get_info():
+    try:
+        # สร้าง SQL query
+        sql = f'''SELECT
+                    DATE(t.Date_time) AS TransactionDate,
+                    TIME(t.Date_time) AS TransactionTime,
+                    t.CSGender,
+                    t.CSAge,
+                    CASE WHEN t.CSID = 0 THEN 'Unknown' ELSE u.CSName END AS UserName,
+                    e.EmoName AS EmotionName,
+                    t.S_Pic
+                FROM
+                    Transaction t
+                LEFT JOIN
+                    CSUser u ON t.CSID = u.CSID
+                JOIN
+                    Emotion e ON t.EmoID = e.EmoID
+                ORDER BY t.SID DESC LIMIT 3;'''
+
+        db.execute(sql)
+        result = db.fetchall()
+
+        if not result:
+            return jsonify({"message": "No records found"}), 404
+        
+        records = [
+            {
+                "TransactionDate": str(record[0]),
+                "TransactionTime": str(record[1]),
+                "CSGender": record[2],
+                "CSAge": record[3],
+                "UserName": "Unknown" if record[4] == 0 else record[4],
+                "EmotionName": record[5],
+                "S_Pic": record[6]
+            }
+            for index, record in enumerate(result)
+        ]
+
+
+        return jsonify(records)
+
+    except Exception as e:
+        # จัดการกับ error ที่เกิดขึ้น
+        error_message = f"An error occurred: {str(e)}"
+        print(error_message)
+        return jsonify({"error": error_message})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

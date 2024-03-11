@@ -29,7 +29,7 @@ function App() {
           
           console.log('limitttt:',result)
 
-          const updatedStyle = {
+          // const updatedStyle = {
           //   // รับ style จากข้อมูลหรือทำการปรับแต่งตามต้องการ
           //   backgroundColor: '#2f3e46',
           //   padding: '10px',

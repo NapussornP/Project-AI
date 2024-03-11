@@ -1,8 +1,8 @@
 // Crop.jsx
 import React, { useState } from 'react';
-import Nav from '../Nav'
-import FileInput from './FileInput';
-import ImagCrop from './Imgcrop'; // Import ImagCrop
+import Nav from '../../Nav'
+import FileInput from '../FileInput';
+import ImagCrop from '../Imgcrop'; // Import ImagCrop
 function Crop() {
     const [image, setImage] = useState('')
     const [currentPage, setCurrentPage] = useState('choose-img') // แก้ชื่อตัวแปร
@@ -14,11 +14,11 @@ function Crop() {
     const onCropDone = (ImagCroppedArea) => {}
     const onCropCancel = () => {}
     return (  
-        <section className="flex gap-6">
-            <Nav />
+        // <section className="flex gap-6">
+            // {/* <Nav /> */}
 
             <div className="Add m-4 text-xl text-gray-900 font-semibold">
-                <div className='center'>
+                <div className='container'>
                     {currentPage === 'choose-img' ? (
                         <FileInput onImageSelected={onImageSelected} />
                     ) : currentPage === 'crop-img' ? (
@@ -28,7 +28,7 @@ function Crop() {
                     )}
                 </div>
             </div>
-        </section>
+        // </section>
     );
 }
 

@@ -21,6 +21,7 @@ import Papa from 'papaparse';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { styled } from '@mui/material/styles';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { ViewState } from "@devexpress/dx-react-scheduler";
 import './../css/Schedule.css'
 
 
@@ -54,8 +55,15 @@ export default function Users() {
     const [data, setData] = useState([]);
     const [courseDetails, setCourseDetails] = useState({});
     const [selectedFile, setSelectedFile] = useState(null);
+    
 
+    useEffect(() => {
+      // ตรวจสอบค่าที่ถูกตั้งค่าหลังจากการทำงานของ handleFileUpload
+      console.log('data:', data);
+      console.log('courseDetails:', courseDetails);
+    }, [data, courseDetails]);
 
+    const currentDate = "2024-03-04";
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
         
@@ -78,13 +86,14 @@ export default function Users() {
                     if(dayDate) {
                         const startDateTime = dayDate + 'T' + row.StartTime;
                         const endDateTime = dayDate + 'T' + row.EndTime;
+                        
   
                         loadedData.push({
                             title: row.CName + ' ' + row.CID,
                             startDate: startDateTime,
                             endDate: endDateTime,
                         });
-  
+                       
                         
                         details = {
                             semester: row.semester,
@@ -92,6 +101,7 @@ export default function Users() {
                             Tname: row.Tname,
                         };
                     }
+                    console.log(loadedData)
                     console.log(row.Tname)
                 });
                 
@@ -103,6 +113,7 @@ export default function Users() {
             },
         });
     };
+    
   
     const clearFile = () => {
       setData([]);
@@ -175,6 +186,7 @@ export default function Users() {
         <div className="centerContainer">
             <Paper className="paperStyle">
                 <Scheduler data={data}>
+                    <ViewState currentDate={currentDate} />
                     <WeekView startDayHour={8} endDayHour={22} excludedDays={[0]} />
                     <Appointments />
                 </Scheduler>

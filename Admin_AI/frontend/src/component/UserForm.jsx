@@ -37,13 +37,13 @@ export default function UseForm(props) {
   const validate = (fieldValues = values) => {
     let temp = { ...errors };
     if ('fullName' in fieldValues) {
-    const isValidFullname = /^[a-zA-Z\s]*$/.test(fieldValues.fullName);
+    const isValidFullname = /^[A-Z][a-z]{0,19}\s[A-Z][a-z]{0,19}$/.test(fieldValues.fullName);
 
     // Check if the field is empty or contains only English letters
     temp.fullName = fieldValues.fullName
       ? isValidFullname
         ? ''
-        : 'Please enter only English letters'
+        : 'Please enter only English letters ex. "Ami Kim"'
       : 'This field is required.';
   }
       

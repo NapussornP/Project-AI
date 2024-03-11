@@ -6,13 +6,14 @@ import Schedule from "./pages/Schedule";
 import Search from "./pages/Search";
 // import AddUser from "./pages/AddUser"
 import User from "./pages/User"
+import ImgCrop from './imgCrop/CropApp'
 
 
 const App = () => {
   return (
     <div>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Login/>} />
         <Route path="/Dashboard" element={<Dashboard/>} />
         <Route path="/User" element={<User/>} />
         <Route path="/Schedule" element={<Schedule/>} />

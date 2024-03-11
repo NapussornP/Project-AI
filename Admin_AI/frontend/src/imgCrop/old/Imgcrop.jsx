@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Cropper from 'react-easy-crop'
+import './img.css';
 
 const ImagCrop = ({ image, onCropDone, onCropCancle }) => {
     const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -17,7 +18,7 @@ const ImagCrop = ({ image, onCropDone, onCropCancle }) => {
     };
   
     return (
-      <div>
+      <div className='cropper'>
         <div>
           <Cropper
             image={image}
@@ -31,19 +32,19 @@ const ImagCrop = ({ image, onCropDone, onCropCancle }) => {
               containerStyle: {
                 width: '100%',
                 height: '80%',
-                backgroundColor: '#fff',
+                backgroundColor: '',
               },
             }}
           />
         </div>
         <div className='action-btns'>
         <div className="aspect-ratio" onChange={onAaspectRatioChange}>
-          <input type="ratio" value={1 / 1} name="ratio" />1:1
-          <input type="ratio" defaultValue={5 / 4} name="ratio" />5:4
-          <input type="ratio" defaultValue={4 / 3} name="ratio" />4:3
-          <input type="ratio" defaultValue={3 / 2} name="ratio" />3:2
-          <input type="ratio" defaultValue={16 / 9} name="ratio" />16:9
-          <input type="ratio" defaultValue={3 / 1} name="ratio" />3:1
+          <input type="ratio"  name="ratio" />1:1
+          <input type="ratio" Value={5 / 4} name="ratio" />5:4
+          <input type="ratio" Value={4 / 3} name="ratio" />4:3
+          <input type="ratio" Value={3 / 2} name="ratio" />3:2
+          <input type="ratio" Value={16 / 9} name="ratio" />16:9
+          <input type="ratio" Value={3 / 1} name="ratio" />3:1
         </div>
         <div className="btn-container">
           <button className="btn btn-outline" onClick={onCropCancle}>

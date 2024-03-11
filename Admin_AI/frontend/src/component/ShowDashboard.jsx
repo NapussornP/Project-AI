@@ -64,13 +64,13 @@ export default function Users() {
             
             <React.Fragment>
             <div className="container-fluid mb-3 text-center">
-                <h2>Stacked bar chart in react using apexcharts</h2>
+                <h2>Emotion Stacked bar chart</h2>
                 <div className='d-flex align-items-center justify-content-center'>
                     {stackedBarChartData && (
                         <Chart
                             type="bar"
-                            width={500}
-                            height={250}
+                            width={600}
+                            height={400}
                             series={stackedBarChartData.series}
                             options={stackedBarChartData.options}
                         />

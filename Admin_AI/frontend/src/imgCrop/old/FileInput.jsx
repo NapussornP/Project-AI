@@ -26,7 +26,7 @@ const FileInput = ({ onImageSelected}) => {
             style={{display: 'none'}}
             />
 
-        <button className='btn' onClick={onChooseImg}>Choose img
+        <button className='btn' onClick={onChooseImg}>Choose-img
         </button>
         </div>
         );

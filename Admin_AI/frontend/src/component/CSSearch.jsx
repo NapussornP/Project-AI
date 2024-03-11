@@ -22,7 +22,7 @@ import './../css/Search.css'
 const useStyles = makeStyles((theme) => ({
   pageContent: {
     padding: theme.spacing(3),
-    // width:'auto',
+    width:'90%',
     height: 'auto'
   },
   searchInput: {

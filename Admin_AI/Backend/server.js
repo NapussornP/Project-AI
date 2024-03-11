@@ -143,33 +143,53 @@ app.post('/AddUser', (req, res) => {
 
 app.get('/dashboard', (req, res) => {
     const sql = `
-        SELECT
-            e.EmoName AS emotion,
-            COUNT(*) AS count
-        FROM
-            Transaction t
-        JOIN Emotion e ON t.EmoID = e.EmoID
-        GROUP BY
-            t.EmoID, e.EmoName
-    `;
-    
+            SELECT 
+            e.EmoName,
+            COALESCE(COUNT(t.EmoID), 0) AS EmoCount,
+            d.DayName AS DayOfWeek
+        FROM 
+            emotion e
+        CROSS JOIN
+            (SELECT DISTINCT DAYNAME(Date_time) AS DayName FROM transaction) d
+        LEFT JOIN 
+            transaction t ON e.EmoID = t.EmoID AND DAYNAME(t.Date_time) = d.DayName
+        GROUP BY 
+            e.EmoName, DayOfWeek
+        ORDER BY
+            FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+            `;
+
     db.query(sql, (err, data) => {
         if (err) return res.json(err);
 
-        const categories = ['g'];
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ];
+        const seriesColors = ['#FF3EA5', '#008ffb', '#00E396', 'rgb(119, 93, 208)', '#4d1b28', 'rgb(255, 69, 96)', 'rgb(254, 176, 25)'];
 
-        const series = data.map(item => ({
-            name: item.emotion,
-            // data: data.map(item => item.count), // Initialize with zeros for both categories
-            // Add color property if needed
-            data: [item.count]
-        }));
+        const series = data.reduce((result, item, index) => {
+            const existingEmotion = result.find(entry => entry.name === item.EmoName);
+            const dayIndex = days.indexOf(item.DayOfWeek);
 
-       
+            if (existingEmotion) {
+                // Set data according to the const days
+                existingEmotion.data[dayIndex] = item.EmoCount;
+            } else {
+                const newData = Array(days.length).fill(0);
+                newData[dayIndex] = item.EmoCount;
+
+                result.push({
+                    name: item.EmoName,
+                    data: newData,
+                    // Set color for the series
+                    color: seriesColors[index],
+                });
+            }
+
+            return result;
+        }, []);
 
         const options = {
             title: {
-                text: "cs kmutnb emotion"
+                text: "cs kmutnb emotion",
             },
             chart: {
                 stacked: true,
@@ -177,25 +197,26 @@ app.get('/dashboard', (req, res) => {
             plotOptions: {
                 bar: {
                     horizontal: true,
-                    columnWidth: '100%'
-                }
+                    columnWidth: '100%',
+                    // colors: ['#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FFA500', '#800080', '#A52A2A'],
+                },
             },
             stroke: {
                 width: 1,
             },
             xaxis: {
                 title: {
-                    text: "cs kmutnb emotion in Year's"
+                    text: "cs kmutnb emotion in Days",
                 },
-                categories: categories
+                categories: days,
             },
             yaxis: {
                 title: {
-                    text: "Data in (K)"
+                    text: "Count of Emotions",
                 },
             },
             legend: {
-                position: 'bottom'
+                position: 'bottom',
             },
             dataLabels: {
                 enabled: true,
@@ -204,23 +225,34 @@ app.get('/dashboard', (req, res) => {
                 show: true,
                 xaxis: {
                     lines: {
-                        show: false
-                    }
+                        show: false,
+                    },
                 },
                 yaxis: {
                     lines: {
-                        show: false
-                    }
-                }
-
-            }
+                        show: false,
+                    },
+                },
+            },
+            // colors: ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'brown'],
+            
+            
         };
 
+        
+
         const stackedBarChartData = { series, options };
+        // console.log('Days length:', days.length);
+        // console.log('Series length:', series.length);
+
 
         return res.json(stackedBarChartData);
     });
 });
+
+
+
+
 
 
 // app.post('/createAd', (req, res) => {

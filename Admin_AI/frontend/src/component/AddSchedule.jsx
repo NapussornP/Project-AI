@@ -64,6 +64,9 @@ export default function Users() {
     }, [data, courseDetails]);
 
     const currentDate = "2024-03-04";
+    // const currentDate = new Date().toISOString().split('T')[0];
+    // const currentDate2 = new Date()
+    // console.log('currrr: ',currentDate2)
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
         
@@ -72,7 +75,7 @@ export default function Users() {
             complete: (results) => {
                 const loadedData = [];
                 let details = {};
-                results.data.slice(0, -1).forEach((row) => {
+                results.data.forEach((row) => {
                     const dateMap = {
                         mon: "2024-03-04",
                         tue: "2024-03-05",
@@ -84,8 +87,8 @@ export default function Users() {
                     
                     const dayDate = dateMap[row.Day?.toLowerCase()];
                     if(dayDate) {
-                        const startDateTime = dayDate + 'T' + row.StartTime;
-                        const endDateTime = dayDate + 'T' + row.EndTime;
+                        const startDateTime = dayDate + 'T' + row.StartTime.padStart(8, '0');
+                        const endDateTime = dayDate + 'T' + row.EndTime.padStart(8, '0');
                         
   
                         loadedData.push({

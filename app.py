@@ -9,8 +9,9 @@ import os
 from datetime import datetime
 import base64
 import mysql.connector
-# import warnings
-# warnings.filterwarnings("ignore", category=DeprecationWarning, module="tensorflow")
+import pyttsx3
+import random
+
 
 
 app = Flask(__name__)
@@ -20,10 +21,11 @@ CORS(app)
 video = cv2.VideoCapture(0)
 
 connection = mysql.connector.connect(
-  host="localhost",
-  user="root",
-  password="",
-  database="ai"
+    host="localhost",
+    user="root",
+    password="",
+    database="ai",
+    connect_timeout=28800
 )
 
 db = connection.cursor()
@@ -35,11 +37,38 @@ if not video.isOpened():
 # Load Haar Cascade for face detection
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-# Set up paths
 current_directory = Path(__file__).parent
 db_path = current_directory.parent.parent / 'AI' / 'Admin_AI' / 'frontend' / 'img_test'
 # db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "a")
-print('Check Path:', db_path)
+# print('Check Path:', db_path)
+
+
+TH_voice_id = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_THAI"
+def speak_message(message):
+    engine = pyttsx3.init()
+    engine.setProperty('rate', 160)
+    engine.setProperty('volume', 1)
+    engine.setProperty('voice', TH_voice_id)
+    engine.say(message)
+    engine.runAndWait()
+
+def get_message_based_on_emotion(emotion_text):
+    result_emotion = select_emoId(emotion_text)
+    # print('Emo jaa :' ,emotion_text)
+    text_speech =  f"SELECT Message FROM text WHERE EmoID = '{result_emotion}' "
+    # print(text_speech)
+    try:
+        db.execute(text_speech)
+        messages = db.fetchall()
+        if messages:
+            print('meet the message')
+            return random.choice(messages)[0]
+        else:
+            return None
+    except mysql.connector.Error as err:
+        print('Querry Text Error: ', err)
+    
+
 
 def select_emoId(emoName):
     emo_id_querry = f"SELECT EmoID FROM emotion WHERE EmoName = '{emoName}' "
@@ -50,7 +79,7 @@ def select_emoId(emoName):
             emo_id = result[0]
             return emo_id
     except mysql.connector.Error as err:
-        print('Error db: ', err)
+        print('Error db select emoid: ', err)
     return None
 
 def insert_db(datetime, gender, age, cs_id, emotion, s_pic, l_pic ):
@@ -85,9 +114,16 @@ def face_detection(img_face, x, y, w, h, img_full_flip, saved_faces, db_path):
         emotion = detec_emo[0]['dominant_emotion']
         age = detec_emo[0]['age']
         gender = detec_emo[0]['dominant_gender']
-        print(f"Emotion: {emotion}, Age: {age}, Gender: {gender}")
+        # print(f"Emotion: {emotion}, Age: {age}, Gender: {gender}")
+        message = get_message_based_on_emotion(emotion)
+        print(message)
+        # speak_message(message)
+        if message:
+            # print('have text')
+            threading.Thread(target=speak_message, args=(message,)).start()
 
         face_recognition = DeepFace.find(img_face, db_path=db_path, enforce_detection=False)
+        
 
         if face_recognition and not face_recognition[0].empty:
 
@@ -150,11 +186,15 @@ def get_frames(video, saved_faces, db_path):
         frame = buffer.tobytes()
         yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
+
+
+
 # Route to serve video feed
 @app.route('/video_feed')
 def video_feed():
     return Response(get_frames(video, set(), db_path),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
+    
 
 
 from flask import jsonify
@@ -205,7 +245,7 @@ def get_info():
         # จัดการกับ error ที่เกิดขึ้น
         error_message = f"An error occurred: {str(e)}"
         print(error_message)
-        return jsonify({"error": error_message})
+        return jsonify({"error fetch to front": error_message})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

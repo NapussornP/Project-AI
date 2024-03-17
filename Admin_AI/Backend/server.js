@@ -141,122 +141,208 @@ app.post('/AddUser', (req, res) => {
     });
   });
   
+// normal dash
 
-app.get('/dashboard', (req, res) => {
-    const sql = `
-            SELECT 
-            e.EmoName,
-            COALESCE(COUNT(t.EmoID), 0) AS EmoCount,
-            d.DayName AS DayOfWeek
-        FROM 
-            emotion e
-        CROSS JOIN
-            (SELECT DISTINCT DAYNAME(Date_time) AS DayName FROM transaction) d
-        LEFT JOIN 
-            transaction t ON e.EmoID = t.EmoID AND DAYNAME(t.Date_time) = d.DayName
-        GROUP BY 
-            e.EmoName, DayOfWeek
-        ORDER BY
-            FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
-            `;
+// app.get('/dashboard', (req, res) => {
+//     const sql = `
+//             SELECT 
+//             e.EmoName,
+//             COALESCE(COUNT(t.EmoID), 0) AS EmoCount,
+//             d.DayName AS DayOfWeek
+//         FROM 
+//             emotion e
+//         CROSS JOIN
+//             (SELECT DISTINCT DAYNAME(Date_time) AS DayName FROM transaction) d
+//         LEFT JOIN 
+//             transaction t ON e.EmoID = t.EmoID AND DAYNAME(t.Date_time) = d.DayName
+//         GROUP BY 
+//             e.EmoName, DayOfWeek
+//         ORDER BY
+//             FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+//             `;
 
-    db.query(sql, (err, data) => {
-        if (err) return res.json(err);
+//     db.query(sql, (err, data) => {
+//         if (err) return res.json(err);
 
-        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ];
-        const seriesColors = ['#FF3EA5', '#008ffb', '#00E396', 'rgb(119, 93, 208)', '#4d1b28', 'rgb(255, 69, 96)', 'rgb(254, 176, 25)'];
+//         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ];
+//         const seriesColors = ['#FF3EA5', '#008ffb', '#00E396', 'rgb(119, 93, 208)', '#4d1b28', 'rgb(255, 69, 96)', 'rgb(254, 176, 25)'];
 
-        const series = data.reduce((result, item, index) => {
-            const existingEmotion = result.find(entry => entry.name === item.EmoName);
-            const dayIndex = days.indexOf(item.DayOfWeek);
+//         const series = data.reduce((result, item, index) => {
+//             const existingEmotion = result.find(entry => entry.name === item.EmoName);
+//             const dayIndex = days.indexOf(item.DayOfWeek);
 
-            if (existingEmotion) {
-                // Set data according to the const days
-                existingEmotion.data[dayIndex] = item.EmoCount;
-            } else {
-                const newData = Array(days.length).fill(0);
-                newData[dayIndex] = item.EmoCount;
+//             if (existingEmotion) {
+//                 // Set data according to the const days
+//                 existingEmotion.data[dayIndex] = item.EmoCount;
+//             } else {
+//                 const newData = Array(days.length).fill(0);
+//                 newData[dayIndex] = item.EmoCount;
 
-                result.push({
-                    name: item.EmoName,
-                    data: newData,
-                    // Set color for the series
-                    color: seriesColors[index],
-                });
-            }
+//                 result.push({
+//                     name: item.EmoName,
+//                     data: newData,
+//                     // Set color for the series
+//                     color: seriesColors[index],
+//                 });
+//             }
 
-            return result;
-        }, []);
+//             return result;
+//         }, []);
 
-        const options = {
-            title: {
-                text: "cs kmutnb emotion",
-            },
-            chart: {
-                stacked: true,
-            },
-            plotOptions: {
-                bar: {
-                    horizontal: true,
-                    columnWidth: '100%',
-                    // colors: ['#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FFA500', '#800080', '#A52A2A'],
-                },
-            },
-            stroke: {
-                width: 1,
-            },
-            xaxis: {
-                title: {
-                    text: "cs kmutnb emotion in Days",
-                },
-                categories: days,
-            },
-            yaxis: {
-                title: {
-                    text: "Count of Emotions",
-                },
-            },
-            legend: {
-                position: 'bottom',
-            },
-            dataLabels: {
-                enabled: true,
-            },
-            grid: {
-                show: true,
-                xaxis: {
-                    lines: {
-                        show: false,
-                    },
-                },
-                yaxis: {
-                    lines: {
-                        show: false,
-                    },
-                },
-            },
-            // colors: ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'brown'],
+//         const options = {
+//             title: {
+//                 text: "cs kmutnb emotion",
+//             },
+//             chart: {
+//                 stacked: true,
+//             },
+//             plotOptions: {
+//                 bar: {
+//                     horizontal: true,
+//                     columnWidth: '100%',
+//                     // colors: ['#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FFA500', '#800080', '#A52A2A'],
+//                 },
+//             },
+//             stroke: {
+//                 width: 1,
+//             },
+//             xaxis: {
+//                 title: {
+//                     text: "cs kmutnb emotion in Days",
+//                 },
+//                 categories: days,
+//             },
+//             yaxis: {
+//                 title: {
+//                     text: "Count of Emotions",
+//                 },
+//             },
+//             legend: {
+//                 position: 'bottom',
+//             },
+//             dataLabels: {
+//                 enabled: true,
+//             },
+//             grid: {
+//                 show: true,
+//                 xaxis: {
+//                     lines: {
+//                         show: false,
+//                     },
+//                 },
+//                 yaxis: {
+//                     lines: {
+//                         show: false,
+//                     },
+//                 },
+//             },
+//             // colors: ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'brown'],
             
             
-        };
+//         };
 
         
 
-        const stackedBarChartData = { series, options };
-        // console.log('Days length:', days.length);
-        // console.log('Series length:', series.length);
+//         const stackedBarChartData = { series, options };
+//         // console.log('Days length:', days.length);
+//         // console.log('Series length:', series.length);
 
 
-        return res.json(stackedBarChartData);
-    });
+//         return res.json(stackedBarChartData);
+//     });
+// });
+
+app.get('/dashboard', (req, res) => {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ];
+    const seriesColors = ['#FF3EA5', '#008ffb', '#00E396', 'rgb(119, 93, 208)', '#4d1b28', 'rgb(255, 69, 96)', 'rgb(254, 176, 25)'];
+
+    const series = [];
+    for (let i = 0; i < 7; i++) {
+        const newData = Array(days.length).fill(0);
+        series.push({
+            name: "",
+            data: newData,
+            color: seriesColors[i % seriesColors.length],
+        });
+    }
+
+    const options = {
+        title: {
+            text: "cs kmutnb emotion",
+        },
+        chart: {
+            stacked: true,
+        },
+        plotOptions: {
+            bar: {
+                horizontal: true,
+                columnWidth: '100%',
+            },
+        },
+        stroke: {
+            width: 1,
+        },
+        xaxis: {
+            title: {
+                text: "Number of Emotions",
+            },
+            categories: days,
+        },
+        yaxis: {
+            title: {
+                text: "7 Days",
+            },
+        },
+        legend: {
+            position: 'bottom',
+        },
+        dataLabels: {
+            enabled: true,
+        },
+        grid: {
+            show: true,
+            xaxis: {
+                lines: {
+                    show: false,
+                },
+            },
+            yaxis: {
+                lines: {
+                    show: false,
+                },
+            },
+        },
+    };
+
+    const stackedBarChartData = { series, options };
+
+    res.json(stackedBarChartData);
 });
-
 
 app.get('/dashboardForEachPerson', (req, res) => {
     const csName = req.query.csName;
+    // const sql = `
+    //     SELECT 
+    //         e.EmoName,
+    //         COALESCE(COUNT(t.EmoID), 0) AS EmoCount,
+    //         d.DayName AS DayOfWeek
+    //     FROM 
+    //         emotion e
+    //     CROSS JOIN
+    //         (SELECT DISTINCT DAYNAME(Date_time) AS DayName FROM transaction) d
+    //     LEFT JOIN 
+    //         transaction t ON e.EmoID = t.EmoID AND DAYNAME(t.Date_time) = d.DayName
+    //     WHERE 
+    //         t.CSID = (SELECT CSID FROM csuser WHERE CSName = ?)
+    //     GROUP BY 
+    //         e.EmoName, DayOfWeek
+    //     ORDER BY
+    //         FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+    // `;
+
     const sql = `
         SELECT 
-            e.EmoName,
+        e.EmoName,
             COALESCE(COUNT(t.EmoID), 0) AS EmoCount,
             d.DayName AS DayOfWeek
         FROM 
@@ -265,12 +351,25 @@ app.get('/dashboardForEachPerson', (req, res) => {
             (SELECT DISTINCT DAYNAME(Date_time) AS DayName FROM transaction) d
         LEFT JOIN 
             transaction t ON e.EmoID = t.EmoID AND DAYNAME(t.Date_time) = d.DayName
+        INNER JOIN
+            schedule s ON t.CSID = s.CSID AND
+        CASE 
+            WHEN DAYNAME(t.Date_time) = 'Monday' THEN 'mon'
+            WHEN DAYNAME(t.Date_time) = 'Tuesday' THEN 'tue'
+            WHEN DAYNAME(t.Date_time) = 'Wednesday' THEN 'wed'
+            WHEN DAYNAME(t.Date_time) = 'Thursday' THEN 'thu'
+            WHEN DAYNAME(t.Date_time) = 'Friday' THEN 'fri'
+            WHEN DAYNAME(t.Date_time) = 'Saturday' THEN 'sat'
+            WHEN DAYNAME(t.Date_time) = 'Sunday' THEN 'sun'
+        END = s.Day
         WHERE 
             t.CSID = (SELECT CSID FROM csuser WHERE CSName = ?)
+            AND TIME(t.Date_time) >= ADDTIME(s.StartTime, '00:00:00')
+            AND TIME(t.Date_time) <= ADDTIME(s.StartTime, '00:30:00')
         GROUP BY 
             e.EmoName, DayOfWeek
         ORDER BY
-            FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+                FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
     `;
 
     db.query(sql, [csName], (err, data) => {
@@ -319,13 +418,13 @@ app.get('/dashboardForEachPerson', (req, res) => {
             },
             xaxis: {
                 title: {
-                    text: "cs kmutnb emotion in Days",
+                    text: "Number of Emotions",
                 },
                 categories: days,
             },
             yaxis: {
                 title: {
-                    text: "Count of Emotions",
+                    text: "7 Days",
                 },
             },
             legend: {

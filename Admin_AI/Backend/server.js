@@ -3,6 +3,7 @@ const mysql = require('mysql')
 const cors = require('cors')
 const multer  = require('multer');
 const path = require('path'); 
+const { json } = require('body-parser');
 
 const app = express()
 app.use(express.json())
@@ -260,55 +261,212 @@ app.get('/dashboard', (req, res) => {
   
 //     const sql = 'INSERT INTO admin (AdName, AdUsername, AdPassword) VALUES (?, ?, ?)';
 //     db.query(sql, [AdName, AdUsername, AdPassword], (err, result) => {
-//       if (err) throw err;
-//       console.log('Ad created:', result);
-//       res.send('Ad created successfully');
+//         if (err) {
+//             res.status(500).json({ error: err.message });
+//         } else {
+//             const newAdId = result.insertId;
+//             console.log('New Ad ID:', newAdId);
+//             const responseData = {
+//                 id: newAdId,
+//                 AdName: AdName,
+//                 AdUsername: AdUsername,
+//                 message: 'Ad created successfully'
+//             };
+//             res.status(200).json(responseData);
+//         }
 //     });
 //   });
 
+
+// normal
+// app.post('/insertSchedule', async (req, res) => {
+//     const { data, courseDetails } = req.body;
+
+//     try {
+//         for (const schedule of data) {
+//         const {
+//             title,
+//             startDate,
+//             endDate
+//         } = schedule;
+
+//         const [CName, CID] = title.split(' ');
+
+//         const query = `
+//             INSERT INTO schedule (CID, CName, Day, StartTime, EndTime, semester, academicYear, CSID)
+//             SELECT 
+//                 ?, -- CID
+//                 ?, -- CName
+//                 DAYOFWEEK(?)-1, -- Day (assuming DAYOFWEEK returns 1 for Sunday)
+//                 TIME(?), -- StartTime
+//                 TIME(?), -- EndTime
+//                 ?, -- semester
+//                 ?, -- academicYear
+//                 csuser.CSID -- CSID
+//             FROM 
+//                 csuser 
+//             WHERE 
+//                 csuser.CSName = ?;
+//         `;
+
+//         const values = [CID, CName, startDate, startDate, endDate, courseDetails.semester, courseDetails.academicYear, courseDetails.Tname];
+
+//         await db.query(query, values);
+//     }
+
+//         console.log('Schedules inserted successfully');
+//         res.status(200).json({ message: 'Schedules inserted successfully' });
+//     } catch (error) {
+//         console.error('Error inserting schedules:', error);
+//         res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// });
+
+// app.post('/insertSchedule', async (req, res) => {
+//     const { data, courseDetails } = req.body;
+
+//     try {
+//         for (const schedule of data) {
+//             const {
+//                 title,
+//                 startDate,
+//                 endDate
+//             } = schedule;
+
+//             const [CName, CID] = title.split(' ');
+
+//             // Check if the schedule already exists for the given CID, Day, and CSID
+//             const checkQuery = `
+//                 SELECT 1
+//                 FROM schedule
+//                 WHERE CID = ? AND Day = DAYOFWEEK(?) - 1 AND CSID = ?
+//                 LIMIT 1;
+//             `;
+//             const checkValues = [CID, startDate, courseDetails.Tname];
+//             const checkResult = await db.query(checkQuery, checkValues);
+
+//             // If the schedule does not exist, insert it
+//             if (checkResult.length === 0) {
+//                 const query = `
+//                     INSERT INTO schedule (CID, CName, Day, StartTime, EndTime, semester, academicYear, CSID)
+//                     SELECT 
+//                         ?, -- CID
+//                         ?, -- CName
+//                         DAYOFWEEK(?)-1, -- Day (assuming DAYOFWEEK returns 1 for Sunday)
+//                         TIME(?), -- StartTime
+//                         TIME(?), -- EndTime
+//                         ?, -- semester
+//                         ?, -- academicYear
+//                         csuser.CSID -- CSID
+//                     FROM 
+//                         csuser 
+//                     WHERE 
+//                         csuser.CSName = ?;
+//                 `;
+
+//                 const values = [CID, CName, startDate, startDate, endDate, courseDetails.semester, courseDetails.academicYear, courseDetails.Tname];
+
+//                 await db.query(query, values);
+//             }
+//         }
+
+//         console.log('Schedules inserted successfully');
+//         res.status(200).json({ message: 'Schedules inserted successfully' });
+//     } catch (error) {
+//         console.error('Error inserting schedules:', error);
+//         res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// });
+
+// not update exists schedule
 app.post('/insertSchedule', async (req, res) => {
     const { data, courseDetails } = req.body;
 
     try {
         for (const schedule of data) {
-        const {
-            title,
-            startDate,
-            endDate
-        } = schedule;
+            const {
+                title,
+                startDate,
+                endDate
+            } = schedule;
 
-        const [CName, CID] = title.split(' ');
+            const [CName, CID] = title.split(' ');
 
-        const query = `
-            INSERT INTO schedule (CID, CName, Day, StartTime, EndTime, semester, academicYear, CSID)
-            SELECT 
-                ?, -- CID
-                ?, -- CName
-                DAYOFWEEK(?)-1, -- Day (assuming DAYOFWEEK returns 1 for Sunday)
-                TIME(?), -- StartTime
-                TIME(?), -- EndTime
-                ?, -- semester
-                ?, -- academicYear
-                csuser.CSID -- CSID
-            FROM 
-                csuser 
-            WHERE 
-                csuser.CSName = ?;
-        `;
+            // Check if the schedule already exists
+            const existingScheduleQuery = `
+                SELECT COUNT(*) AS COUNT
+                FROM schedule
+                WHERE CID = ? AND Day = LOWER(DATE_FORMAT(?, '%a')) AND CSID = (SELECT CSID FROM csuser WHERE CSName= ? )
+                LIMIT 1;
+            `;
 
-        const values = [CID, CName, startDate, startDate, endDate, courseDetails.semester, courseDetails.academicYear, courseDetails.Tname];
+            const existingScheduleValues = [CID, startDate, courseDetails.Tname];
 
-        await db.query(query, values);
-    }
+            db.query(existingScheduleQuery, existingScheduleValues, function(err, existingScheduleResult) {
+                if (err) {
+                    console.error('Error fetching existing schedule:', err);
+                    return res.status(500).json({ error: 'Internal Server Error' });
+                }
 
-        console.log('Schedules inserted successfully');
-        res.status(200).json({ message: 'Schedules inserted successfully' });
+                console.log('existingScheduleResult: ', existingScheduleResult[0].COUNT);
+
+                // If schedule does not exist, insert it
+                if (existingScheduleResult[0].COUNT === 0) {
+                    // Insert the schedule if it doesn't already exist
+                    const insertQuery = `
+                        INSERT IGNORE INTO schedule (CID, CName, Day, StartTime, EndTime, semester, academicYear, CSID)
+                        SELECT 
+                            ?, -- CID
+                            ?, -- CName
+                            DAYOFWEEK(?)-1, -- Day (assuming DAYOFWEEK returns 1 for Sunday)
+                            TIME(?), -- StartTime
+                            TIME(?), -- EndTime
+                            ?, -- semester
+                            ?, -- academicYear
+                            csuser.CSID -- CSID
+                        FROM 
+                            csuser 
+                        WHERE 
+                            csuser.CSName = ?;
+                    `;
+
+                    const insertValues = [CID, CName, startDate, startDate, endDate, courseDetails.semester, courseDetails.academicYear, courseDetails.Tname];
+
+                    db.query(insertQuery, insertValues, function(err, insertResult) {
+                        if (err) {
+                            console.error('Error inserting schedule:', err);
+                            return res.status(500).json({ error: 'Internal Server Error' });
+                        }
+                        
+                        console.log('Schedule inserted successfully');
+                    });
+                } else {
+                    console.log('Schedule already exists');
+                }
+            });
+        }
+
+        console.log('All schedules processed successfully');
+        res.status(200).json({ message: 'All schedules processed successfully' });
     } catch (error) {
         console.error('Error inserting schedules:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
+
+
+
+
+
+
+
+
   
+
+
+
+
 
 app.listen(8081, () => {
     console.log("listening");

@@ -252,6 +252,126 @@ app.get('/dashboard', (req, res) => {
 });
 
 
+app.get('/dashboardForEachPerson', (req, res) => {
+    const csName = req.query.csName;
+    const sql = `
+        SELECT 
+            e.EmoName,
+            COALESCE(COUNT(t.EmoID), 0) AS EmoCount,
+            d.DayName AS DayOfWeek
+        FROM 
+            emotion e
+        CROSS JOIN
+            (SELECT DISTINCT DAYNAME(Date_time) AS DayName FROM transaction) d
+        LEFT JOIN 
+            transaction t ON e.EmoID = t.EmoID AND DAYNAME(t.Date_time) = d.DayName
+        WHERE 
+            t.CSID = (SELECT CSID FROM csuser WHERE CSName = ?)
+        GROUP BY 
+            e.EmoName, DayOfWeek
+        ORDER BY
+            FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+    `;
+
+    db.query(sql, [csName], (err, data) => {
+        if (err) return res.json(err);
+
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const seriesColors = ['#FF3EA5', '#008ffb', '#00E396', 'rgb(119, 93, 208)', '#4d1b28', 'rgb(255, 69, 96)', 'rgb(254, 176, 25)'];
+
+        const series = data.reduce((result, item, index) => {
+            const existingEmotion = result.find(entry => entry.name === item.EmoName);
+            const dayIndex = days.indexOf(item.DayOfWeek);
+
+            if (existingEmotion) {
+                // Set data according to the const days
+                existingEmotion.data[dayIndex] = item.EmoCount;
+            } else {
+                const newData = Array(days.length).fill(0);
+                newData[dayIndex] = item.EmoCount;
+
+                result.push({
+                    name: item.EmoName,
+                    data: newData,
+                    // Set color for the series
+                    color: seriesColors[index],
+                });
+            }
+
+            return result;
+        }, []);
+
+        const options = {
+            title: {
+                text: "cs kmutnb emotion",
+            },
+            chart: {
+                stacked: true,
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: true,
+                    columnWidth: '100%',
+                },
+            },
+            stroke: {
+                width: 1,
+            },
+            xaxis: {
+                title: {
+                    text: "cs kmutnb emotion in Days",
+                },
+                categories: days,
+            },
+            yaxis: {
+                title: {
+                    text: "Count of Emotions",
+                },
+            },
+            legend: {
+                position: 'bottom',
+            },
+            dataLabels: {
+                enabled: true,
+            },
+            grid: {
+                show: true,
+                xaxis: {
+                    lines: {
+                        show: false,
+                    },
+                },
+                yaxis: {
+                    lines: {
+                        show: false,
+                    },
+                },
+            },
+        };
+
+        const stackedBarChartData = { series, options };
+
+        res.json(stackedBarChartData);
+    });
+});
+
+
+app.get('/csName', (req, res) => {
+    // const sql = ` SELECT CSName FROM csuser WHERE Role = 'teacher' `;
+    const sql = ` SELECT CSName FROM csuser  `;
+
+
+    db.query(sql, (err, result) => {
+        if(err){
+            console.log('Error fetching cs names: ', err);
+            res.result(500).send('Internal Server Error');
+        }
+        else{
+
+            res.json(result);
+        }
+    })
+})
 
 
 
@@ -313,62 +433,6 @@ app.get('/dashboard', (req, res) => {
 
 //         await db.query(query, values);
 //     }
-
-//         console.log('Schedules inserted successfully');
-//         res.status(200).json({ message: 'Schedules inserted successfully' });
-//     } catch (error) {
-//         console.error('Error inserting schedules:', error);
-//         res.status(500).json({ error: 'Internal Server Error' });
-//     }
-// });
-
-// app.post('/insertSchedule', async (req, res) => {
-//     const { data, courseDetails } = req.body;
-
-//     try {
-//         for (const schedule of data) {
-//             const {
-//                 title,
-//                 startDate,
-//                 endDate
-//             } = schedule;
-
-//             const [CName, CID] = title.split(' ');
-
-//             // Check if the schedule already exists for the given CID, Day, and CSID
-//             const checkQuery = `
-//                 SELECT 1
-//                 FROM schedule
-//                 WHERE CID = ? AND Day = DAYOFWEEK(?) - 1 AND CSID = ?
-//                 LIMIT 1;
-//             `;
-//             const checkValues = [CID, startDate, courseDetails.Tname];
-//             const checkResult = await db.query(checkQuery, checkValues);
-
-//             // If the schedule does not exist, insert it
-//             if (checkResult.length === 0) {
-//                 const query = `
-//                     INSERT INTO schedule (CID, CName, Day, StartTime, EndTime, semester, academicYear, CSID)
-//                     SELECT 
-//                         ?, -- CID
-//                         ?, -- CName
-//                         DAYOFWEEK(?)-1, -- Day (assuming DAYOFWEEK returns 1 for Sunday)
-//                         TIME(?), -- StartTime
-//                         TIME(?), -- EndTime
-//                         ?, -- semester
-//                         ?, -- academicYear
-//                         csuser.CSID -- CSID
-//                     FROM 
-//                         csuser 
-//                     WHERE 
-//                         csuser.CSName = ?;
-//                 `;
-
-//                 const values = [CID, CName, startDate, startDate, endDate, courseDetails.semester, courseDetails.academicYear, courseDetails.Tname];
-
-//                 await db.query(query, values);
-//             }
-//         }
 
 //         console.log('Schedules inserted successfully');
 //         res.status(200).json({ message: 'Schedules inserted successfully' });
@@ -453,18 +517,6 @@ app.post('/insertSchedule', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
-
-
-
-
-
-
-
-
-
-  
-
-
 
 
 

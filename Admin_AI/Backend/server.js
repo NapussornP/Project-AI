@@ -369,13 +369,10 @@ app.get('/StartTimeDashboard', (req, res) => {
         WHERE 
             t.CSID = (SELECT CSID FROM csuser WHERE CSName = ?)
             AND s.semester = ? AND s.academicyear = ?
-            AND TIME(t.Date_time) = (
-                SELECT MAX(TIME(t2.Date_time)) 
-                FROM transaction t2 
-                WHERE TIME(t2.Date_time) >= ADDTIME(s.StartTime, '-00:30:00')
-                    AND TIME(t2.Date_time) <= ADDTIME(s.StartTime, '00:30:00')
-                    AND t2.CSID = t.CSID
-            )
+            AND  TIME(t.Date_time) >= ADDTIME(s.StartTime, '-00:30:00')
+            AND TIME(t.Date_time) <= ADDTIME(s.StartTime, '00:30:00')
+                    
+            
         GROUP BY 
             e.EmoName, DayOfWeek
         
@@ -511,13 +508,10 @@ app.get('/FinishTimeDashboard', (req, res) => {
         WHERE 
             t.CSID = (SELECT CSID FROM csuser WHERE CSName = ?)
             AND s.semester = ? AND s.academicyear = ?
-            AND TIME(t.Date_time) = (
-                SELECT MAX(TIME(t2.Date_time)) 
-                FROM transaction t2 
-                WHERE TIME(t2.Date_time) >= ADDTIME(s.EndTime, '-01:30:00')
-                    AND TIME(t2.Date_time) <= ADDTIME(s.EndTime, '00:30:00')
-                    AND t2.CSID = t.CSID
-            )
+            AND TIME(t.Date_time) >= ADDTIME(s.EndTime, '-01:30:00')
+            AND TIME(t.Date_time) <= ADDTIME(s.EndTime, '00:30:00')
+                    
+            
         GROUP BY 
             e.EmoName, DayOfWeek
         

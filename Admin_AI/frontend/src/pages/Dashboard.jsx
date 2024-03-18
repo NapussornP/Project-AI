@@ -42,6 +42,7 @@ const useStyles = makeStyles({
     paddingLeft: "320px",
     width: "100%",
   },
+  
 });
 
 function App() {
@@ -49,7 +50,7 @@ function App() {
 
   return (
     <section className="flex gap-6">
-        <Nav />
+        <Nav/>
         <ThemeProvider theme={theme}>
       
         <div className={classes.appMain}>

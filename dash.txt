@@ -1,0 +1,55 @@
+// app.post('/insertSchedule', async (req, res) => {
+//     const { data, courseDetails } = req.body;
+
+//     try {
+//         for (const schedule of data) {
+//             const {
+//                 title,
+//                 startDate,
+//                 endDate
+//             } = schedule;
+
+//             const [CName, CID] = title.split(' ');
+
+//             // Check if the schedule already exists for the given CID, Day, and CSID
+//             const checkQuery = `
+//                 SELECT 1
+//                 FROM schedule
+//                 WHERE CID = ? AND Day = DAYOFWEEK(?) - 1 AND CSID = ?
+//                 LIMIT 1;
+//             `;
+//             const checkValues = [CID, startDate, courseDetails.Tname];
+//             const checkResult = await db.query(checkQuery, checkValues);
+
+//             // If the schedule does not exist, insert it
+//             if (checkResult.length === 0) {
+//                 const query = `
+//                     INSERT INTO schedule (CID, CName, Day, StartTime, EndTime, semester, academicYear, CSID)
+//                     SELECT 
+//                         ?, -- CID
+//                         ?, -- CName
+//                         DAYOFWEEK(?)-1, -- Day (assuming DAYOFWEEK returns 1 for Sunday)
+//                         TIME(?), -- StartTime
+//                         TIME(?), -- EndTime
+//                         ?, -- semester
+//                         ?, -- academicYear
+//                         csuser.CSID -- CSID
+//                     FROM 
+//                         csuser 
+//                     WHERE 
+//                         csuser.CSName = ?;
+//                 `;
+
+//                 const values = [CID, CName, startDate, startDate, endDate, courseDetails.semester, courseDetails.academicYear, courseDetails.Tname];
+
+//                 await db.query(query, values);
+//             }
+//         }
+
+//         console.log('Schedules inserted successfully');
+//         res.status(200).json({ message: 'Schedules inserted successfully' });
+//     } catch (error) {
+//         console.error('Error inserting schedules:', error);
+//         res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// });

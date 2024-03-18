@@ -1,0 +1,14 @@
+.css-3dzjca-MuiPaper-root-MuiPopover-paper-MuiMenu-paper{
+    width: 100px !important;
+    height: auto;
+}
+.FormControl{
+    margin-left: -30%;
+    margin-bottom: 5%;
+    display: grid !important;
+    grid-template-columns: 250px 120px 155px;
+    grid-gap: 10px;
+}
+.in-bar{
+    margin-bottom: -20% !important;
+}

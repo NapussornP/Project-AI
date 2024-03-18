@@ -100,7 +100,7 @@ export default function Users() {
             }}
             onChange={handleSearch}
           />
-          <Controls.Button
+          {/* <Controls.Button
             text="!!search img!!"
             variant="outlined"
             // startIcon={<AddIcon />}
@@ -109,7 +109,7 @@ export default function Users() {
             //   setOpenPopup(true);
             //   setRecordForEdit(null);
             // }}
-          />
+          /> */}
         </Toolbar>
         <TblContainer style={{ maxHeight: '600px'}}>
             

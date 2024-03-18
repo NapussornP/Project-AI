@@ -259,10 +259,12 @@ app.get('/dashboard', (req, res) => {
     const series = [];
     for (let i = 0; i < 7; i++) {
         const newData = Array(days.length).fill(0);
+
+        
         series.push({
             name: "",
             data: newData,
-            color: seriesColors[i % seriesColors.length],
+            // color: seriesColors[i % seriesColors.length],
         });
     }
 
@@ -319,7 +321,7 @@ app.get('/dashboard', (req, res) => {
     res.json(stackedBarChartData);
 });
 
-app.get('/dashboardForEachPerson', (req, res) => {
+app.get('/StartTimeDashboard', (req, res) => {
     const csName = req.query.csName;
     // const sql = `
     //     SELECT 
@@ -364,10 +366,16 @@ app.get('/dashboardForEachPerson', (req, res) => {
         END = s.Day
         WHERE 
             t.CSID = (SELECT CSID FROM csuser WHERE CSName = ?)
-            AND TIME(t.Date_time) >= ADDTIME(s.StartTime, '00:00:00')
-            AND TIME(t.Date_time) <= ADDTIME(s.StartTime, '00:30:00')
+            AND TIME(t.Date_time) = (
+                SELECT MAX(TIME(t2.Date_time)) 
+                FROM transaction t2 
+                WHERE TIME(t2.Date_time) >= ADDTIME(s.StartTime, '-00:30:00')
+                    AND TIME(t2.Date_time) <= ADDTIME(s.StartTime, '00:30:00')
+                    AND t2.CSID = t.CSID
+            )
         GROUP BY 
             e.EmoName, DayOfWeek
+        
         ORDER BY
                 FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
     `;
@@ -389,11 +397,27 @@ app.get('/dashboardForEachPerson', (req, res) => {
                 const newData = Array(days.length).fill(0);
                 newData[dayIndex] = item.EmoCount;
 
+                let color;
+                if (item.EmoName === 'fear') {
+                    color = seriesColors[3]; 
+                } else if(item.EmoName === 'surprise'){
+                    color = seriesColors[6];
+                }else if(item.EmoName === 'neutral'){
+                    color = seriesColors[2];
+                }else if(item.EmoName === 'angry'){
+                    color = seriesColors[5];
+                }else if(item.EmoName === 'happy'){
+                    color = seriesColors[0];
+                }else if(item.EmoName === 'sad'){
+                    color = seriesColors[1];
+                }else if(item.EmoName === 'disgust'){
+                    color = seriesColors[4];
+                }
+
                 result.push({
                     name: item.EmoName,
                     data: newData,
-                    // Set color for the series
-                    color: seriesColors[index],
+                    color: color,
                 });
             }
 
@@ -402,7 +426,146 @@ app.get('/dashboardForEachPerson', (req, res) => {
 
         const options = {
             title: {
-                text: "cs kmutnb emotion",
+                text: "Start Class",
+            },
+            chart: {
+                stacked: true,
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: true,
+                    columnWidth: '100%',
+                },
+            },
+            stroke: {
+                width: 1,
+            },
+            xaxis: {
+                title: {
+                    text: "Number of Emotions",
+                },
+                categories: days,
+            },
+            yaxis: {
+                title: {
+                    text: "7 Days",
+                },
+            },
+            legend: {
+                position: 'bottom',
+            },
+            dataLabels: {
+                enabled: true,
+            },
+            grid: {
+                show: true,
+                xaxis: {
+                    lines: {
+                        show: false,
+                    },
+                },
+                yaxis: {
+                    lines: {
+                        show: false,
+                    },
+                },
+            },
+        };
+
+        const stackedBarChartData = { series, options };
+
+        res.json(stackedBarChartData);
+    });
+});
+
+
+app.get('/FinishTimeDashboard', (req, res) => {
+    const csName = req.query.csName;
+    const sql = `
+        SELECT 
+        e.EmoName,
+            COALESCE(COUNT(t.EmoID), 0) AS EmoCount,
+            d.DayName AS DayOfWeek
+        FROM 
+            emotion e
+        CROSS JOIN
+            (SELECT DISTINCT DAYNAME(Date_time) AS DayName FROM transaction) d
+        LEFT JOIN 
+            transaction t ON e.EmoID = t.EmoID AND DAYNAME(t.Date_time) = d.DayName
+        INNER JOIN
+            schedule s ON t.CSID = s.CSID AND
+        CASE 
+            WHEN DAYNAME(t.Date_time) = 'Monday' THEN 'mon'
+            WHEN DAYNAME(t.Date_time) = 'Tuesday' THEN 'tue'
+            WHEN DAYNAME(t.Date_time) = 'Wednesday' THEN 'wed'
+            WHEN DAYNAME(t.Date_time) = 'Thursday' THEN 'thu'
+            WHEN DAYNAME(t.Date_time) = 'Friday' THEN 'fri'
+            WHEN DAYNAME(t.Date_time) = 'Saturday' THEN 'sat'
+            WHEN DAYNAME(t.Date_time) = 'Sunday' THEN 'sun'
+        END = s.Day
+        WHERE 
+            t.CSID = (SELECT CSID FROM csuser WHERE CSName = "Suwatchai Kamonsantiroj")
+            AND TIME(t.Date_time) = (
+                SELECT MAX(TIME(t2.Date_time)) 
+                FROM transaction t2 
+                WHERE TIME(t2.Date_time) >= ADDTIME(s.EndTime, '-01:30:00')
+                    AND TIME(t2.Date_time) <= ADDTIME(s.EndTime, '00:30:00')
+                    AND t2.CSID = t.CSID
+            )
+        GROUP BY 
+            e.EmoName, DayOfWeek
+        
+        ORDER BY
+                FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+    `;
+
+    db.query(sql, [csName], (err, data) => {
+        if (err) return res.json(err);
+
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const seriesColors = ['#FF3EA5', '#008ffb', '#00E396', 'rgb(119, 93, 208)', '#4d1b28', 'rgb(255, 69, 96)', 'rgb(254, 176, 25)'];
+
+        const series = data.reduce((result, item, index) => {
+            const existingEmotion = result.find(entry => entry.name === item.EmoName);
+            const dayIndex = days.indexOf(item.DayOfWeek);
+
+            if (existingEmotion) {
+                // Set data according to the const days
+                existingEmotion.data[dayIndex] = item.EmoCount;
+            } else {
+                const newData = Array(days.length).fill(0);
+                newData[dayIndex] = item.EmoCount;
+
+                let color;
+                if (item.EmoName === 'fear') {
+                    color = seriesColors[3]; 
+                } else if(item.EmoName === 'surprise'){
+                    color = seriesColors[6];
+                }else if(item.EmoName === 'neutral'){
+                    color = seriesColors[2];
+                }else if(item.EmoName === 'angry'){
+                    color = seriesColors[5];
+                }else if(item.EmoName === 'happy'){
+                    color = seriesColors[0];
+                }else if(item.EmoName === 'sad'){
+                    color = seriesColors[1];
+                }else if(item.EmoName === 'disgust'){
+                    color = seriesColors[4];
+                }
+
+                result.push({
+                    name: item.EmoName,
+                    data: newData,
+                    color: color,
+                });
+            }
+
+            return result;
+        }, []);
+
+        const options = {
+            title: {
+                text: "Finish Class",
             },
             chart: {
                 stacked: true,
@@ -456,8 +619,8 @@ app.get('/dashboardForEachPerson', (req, res) => {
 
 
 app.get('/csName', (req, res) => {
-    // const sql = ` SELECT CSName FROM csuser WHERE Role = 'teacher' `;
-    const sql = ` SELECT CSName FROM csuser  `;
+    const sql = ` SELECT CSName FROM csuser WHERE Role = 'teacher' `;
+    // const sql = ` SELECT CSName FROM csuser  `;
 
 
     db.query(sql, (err, result) => {

@@ -323,6 +323,8 @@ app.get('/dashboard', (req, res) => {
 
 app.get('/StartTimeDashboard', (req, res) => {
     const csName = req.query.csName;
+    const semester = req.query.semester;
+    const academicYear = req.query.academicYear;
     // const sql = `
     //     SELECT 
     //         e.EmoName,
@@ -366,6 +368,7 @@ app.get('/StartTimeDashboard', (req, res) => {
         END = s.Day
         WHERE 
             t.CSID = (SELECT CSID FROM csuser WHERE CSName = ?)
+            AND s.semester = ? AND s.academicyear = ?
             AND TIME(t.Date_time) = (
                 SELECT MAX(TIME(t2.Date_time)) 
                 FROM transaction t2 
@@ -380,7 +383,7 @@ app.get('/StartTimeDashboard', (req, res) => {
                 FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
     `;
 
-    db.query(sql, [csName], (err, data) => {
+    db.query(sql, [csName, semester, academicYear], (err, data) => {
         if (err) return res.json(err);
 
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -481,6 +484,8 @@ app.get('/StartTimeDashboard', (req, res) => {
 
 app.get('/FinishTimeDashboard', (req, res) => {
     const csName = req.query.csName;
+    const semester = req.query.semester;
+    const academicYear = req.query.academicYear;
     const sql = `
         SELECT 
         e.EmoName,
@@ -504,7 +509,8 @@ app.get('/FinishTimeDashboard', (req, res) => {
             WHEN DAYNAME(t.Date_time) = 'Sunday' THEN 'sun'
         END = s.Day
         WHERE 
-            t.CSID = (SELECT CSID FROM csuser WHERE CSName = "Suwatchai Kamonsantiroj")
+            t.CSID = (SELECT CSID FROM csuser WHERE CSName = ?)
+            AND s.semester = ? AND s.academicyear = ?
             AND TIME(t.Date_time) = (
                 SELECT MAX(TIME(t2.Date_time)) 
                 FROM transaction t2 
@@ -519,7 +525,7 @@ app.get('/FinishTimeDashboard', (req, res) => {
                 FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
     `;
 
-    db.query(sql, [csName], (err, data) => {
+    db.query(sql, [csName, semester, academicYear], (err, data) => {
         if (err) return res.json(err);
 
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];

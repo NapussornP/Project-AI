@@ -61,27 +61,44 @@ export default function Users() {
 
   const [name, setName] = useState([]);
   const [showName, setShowName] = React.useState('');
+  const [semester, setSemester] = useState('');
+  const [academicYear, setAcademicYear] = useState('');
 
-
-  const handleChange = (event) => {
-    setShowName(event.target.value); 
+  const fetchData = (csName, semester, academicYear) => {
     axios.get('http://localhost:8081/StartTimeDashboard', {
         params: {
-            csName: event.target.value
+            csName: csName,
+            semester: semester, 
+            academicYear: academicYear 
         }
     })
     .then(response => setStackedBarStartClass(response.data))
     .catch(error => console.error('Error fetching Start Class data:', error));
     
     axios.get('http://localhost:8081/FinishTimeDashboard', {
-      params: {
-        csName: event.target.value
-      }
+        params: {
+            csName: csName,
+            semester: semester, 
+            academicYear: academicYear 
+        }
     })
     .then(response => setStackedBarFinishClass(response.data))
     .catch(error => console.error('Error fetching Finish Class data:', error))
+};
+
+
+  const handleChange = (event) => {
+    setShowName(event.target.value);
+    fetchData(event.target.value, semester, academicYear);
   };
 
+  const handleChangeSemester = (event) => {
+    setSemester(event.target.value);  
+  };
+
+  const handleChangeYear = (event) => {
+    setAcademicYear(event.target.value); 
+  };
 
   useEffect(() => {
     // axios.get('http://localhost:8081/dashboard')
@@ -91,8 +108,6 @@ export default function Users() {
     // })
     // .catch(error => console.error('Error fetching data:', error));
 
-
-
     axios.get('http://localhost:8081/csName')
     .then(response => {
       const csNames = response.data.map(item => item.CSName); 
@@ -101,7 +116,12 @@ export default function Users() {
     .catch(error => console.log(error));
 
   }, []);
-
+  
+  useEffect(() => {
+    if (showName) {
+        fetchData(showName, semester, academicYear);
+    }
+}, [showName, semester, academicYear]);
   console.log(name)
   
   return (
@@ -114,40 +134,65 @@ export default function Users() {
 
 
       <Paper className={classes.pageContent}>
-        <FormControl sx={{ m: 2, minWidth: 250 }} size="small" className="FormControl">
-          <InputLabel id="demo-select-small-label">name</InputLabel>
-          <Select
-            labelId="demo-select-small-label"
-            id="demo-select-small"
-            value={showName}
-            label="Name"
-            onChange={handleChange}
-            className="selectName"
-          >
-            
-            {name.map((nameItem) => (
-              <MenuItem key={nameItem} value={nameItem}>
-                {nameItem}
-              </MenuItem>
-            ))}
-          </Select>
+        <div className="FormControl">
+          <FormControl sx={{ m: 2, minWidth: 250 }} size="small" >
+            <InputLabel id="demo-select-small-label">name</InputLabel>
+            <Select
+              labelId="demo-select-small-label"
+              id="demo-select-small"
+              value={showName}
+              label="Name"
+              onChange={handleChange}
+              style={{width: '250px'}}
+            >
+              {name.map((nameItem) => (
+                <MenuItem key={nameItem} value={nameItem}>
+                  {nameItem}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-          <InputLabel id="demo-select-small-label">name</InputLabel>
-          <Select
-            labelId="demo-select-small-label"
-            id="demo-select-small"
-            value={showName}
-            label="Semester"
-            onChange={handleChange}
-          >
-            
-            {/* {name.map((nameItem) => (
-              <MenuItem key={nameItem} value={nameItem}>
-                {nameItem}
-              </MenuItem>
-            ))} */}
-          </Select>
-        </FormControl>
+          <FormControl sx={{ m: 2, minWidth: 250 }} size="small" >
+            <InputLabel id="demo-select-small-label">semester</InputLabel>
+            <Select
+              labelId="demo-select-small-label"
+              id="demo-select-small"
+              value={semester}
+              label="Semester"
+              onChange={handleChangeSemester}
+              style={{width: '120px'}}
+            >
+              
+              <MenuItem value={1}>1</MenuItem>
+              <MenuItem value={2}>2</MenuItem>
+            </Select>
+          </FormControl>
+
+
+          <FormControl sx={{ m: 2, minWidth: 250 }} size="small" >
+            <InputLabel id="demo-select-small-label">Academin Year</InputLabel>
+            <Select
+              labelId="demo-select-small-label"
+              id="demo-select-small"
+              value={academicYear}
+              label="AcademinYear"
+              onChange={handleChangeYear}
+              style={{width: '155px'}}
+            >
+              
+              {Array.from({length: 47}, (_, index) => {
+                const year = 2024 + index;
+                return (
+                  <MenuItem key={year} value={year}>
+                    {year}
+                  </MenuItem>
+                )
+              })}
+            </Select>
+          </FormControl>
+        </div>
+        
 
 
         <Toolbar>

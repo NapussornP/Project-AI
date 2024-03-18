@@ -25,7 +25,7 @@ import './../css/Dashboard.css'
 const useStyles = makeStyles((theme) => ({
     pageContent: {
       padding: theme.spacing(3),
-      height: '870px',
+      height: '900px',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -53,28 +53,44 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Users() {
   const classes = useStyles();
-  const [stackedBarChartData, setStackedBarChartData] = useState(null);
-  console.log(stackedBarChartData)
+  const [stackedBarStartClass, setStackedBarStartClass] = useState(null);
+  const [stackedBarFinishClass, setStackedBarFinishClass] = useState(null);
+
+  // console.log(stackedBarStartClass)
 
 
   const [name, setName] = useState([]);
   const [showName, setShowName] = React.useState('');
 
+
   const handleChange = (event) => {
     setShowName(event.target.value); 
-    axios.get('http://localhost:8081/dashboardForEachPerson', {
+    axios.get('http://localhost:8081/StartTimeDashboard', {
         params: {
             csName: event.target.value
         }
     })
-    .then(response => setStackedBarChartData(response.data))
-    .catch(error => console.error('Error fetching data:', error)); 
+    .then(response => setStackedBarStartClass(response.data))
+    .catch(error => console.error('Error fetching Start Class data:', error));
+    
+    axios.get('http://localhost:8081/FinishTimeDashboard', {
+      params: {
+        csName: event.target.value
+      }
+    })
+    .then(response => setStackedBarFinishClass(response.data))
+    .catch(error => console.error('Error fetching Finish Class data:', error))
   };
 
+
   useEffect(() => {
-    axios.get('http://localhost:8081/dashboard')
-    .then(response => setStackedBarChartData(response.data))
-    .catch(error => console.error('Error fetching data:', error));
+    // axios.get('http://localhost:8081/dashboard')
+    // .then(response => {
+    //     setStackedBarStartClass(response.data);
+    //     setStackedBarFinishClass(response.data);
+    // })
+    // .catch(error => console.error('Error fetching data:', error));
+
 
 
     axios.get('http://localhost:8081/csName')
@@ -106,6 +122,7 @@ export default function Users() {
             value={showName}
             label="Name"
             onChange={handleChange}
+            className="selectName"
           >
             
             {name.map((nameItem) => (
@@ -114,19 +131,37 @@ export default function Users() {
               </MenuItem>
             ))}
           </Select>
+
+          <InputLabel id="demo-select-small-label">name</InputLabel>
+          <Select
+            labelId="demo-select-small-label"
+            id="demo-select-small"
+            value={showName}
+            label="Semester"
+            onChange={handleChange}
+          >
+            
+            {/* {name.map((nameItem) => (
+              <MenuItem key={nameItem} value={nameItem}>
+                {nameItem}
+              </MenuItem>
+            ))} */}
+          </Select>
         </FormControl>
+
+
         <Toolbar>
           <React.Fragment>
             <div className="container-fluid mb-3 text-center">
                 <h2>IN </h2>
                 <div className='d-flex align-items-center justify-content-center'>
-                    {stackedBarChartData && (
+                    {stackedBarStartClass && (
                         <Chart
                             type="bar"
                             width={600}
                             height={350}
-                            series={stackedBarChartData.series}
-                            options={stackedBarChartData.options}
+                            series={stackedBarStartClass.series}
+                            options={stackedBarStartClass.options}
                         />
                     )}
                 </div>
@@ -139,13 +174,13 @@ export default function Users() {
             <div className="container-fluid  text-center in-bar">
                 <h2>OUT </h2>
                 <div className='d-flex align-items-center justify-content-center'>
-                    {stackedBarChartData && (
+                    {stackedBarFinishClass && (
                         <Chart
                             type="bar"
                             width={600}
-                            height={350}
-                            series={stackedBarChartData.series}
-                            options={stackedBarChartData.options}
+                            height={300}
+                            series={stackedBarFinishClass.series}
+                            options={stackedBarFinishClass.options}
                         />
                     )}
                 </div>

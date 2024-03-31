@@ -11,6 +11,8 @@ import base64
 import mysql.connector
 import pyttsx3
 import random
+import concurrent.futures
+
 
 
 
@@ -104,51 +106,68 @@ def insert_db(datetime, gender, age, cs_id, emotion, s_pic, l_pic ):
 
 def face_detection(img_face, x, y, w, h, img_full_flip, saved_faces, db_path):
     try:
-
         datetime_detect = datetime.now()
         print(f"Date taken for detection: {datetime_detect} ")
 
+        # Define functions to analyze emotion, age, and gender
+        def analyze_emotion():
+            return DeepFace.analyze(img_face, actions='emotion', enforce_detection=False)
 
-        detec_emo = DeepFace.analyze(img_face, actions=['emotion', 'age', 'gender'], enforce_detection=False)
+        def analyze_age():
+            return DeepFace.analyze(img_face, actions='age', enforce_detection=False)
+
+        def analyze_gender():
+            return DeepFace.analyze(img_face, actions='gender', enforce_detection=False)
+
+        def find_face():
+            return DeepFace.find(img_face, db_path=db_path, enforce_detection=False)
+
+        # Analyze emotion, age, and gender concurrently
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            emo_future = executor.submit(analyze_emotion)
+            age_future = executor.submit(analyze_age)
+            gender_future = executor.submit(analyze_gender)
+            face_find_future = executor.submit(find_face)
+
+            # Get results from futures
+            detec_emo = emo_future.result()
+            detec_age = age_future.result()
+            detec_gender = gender_future.result()
+            face_recognition = face_find_future.result()
+
+        # Extract emotion, age, and gender from the analysis
         emotion = detec_emo[0]['dominant_emotion']
-        age = detec_emo[0]['age']
-        gender = detec_emo[0]['dominant_gender']
-        # print(f"Emotion: {emotion}, Age: {age}, Gender: {gender}")
+        age = detec_age[0]['age']
+        gender = detec_gender[0]['dominant_gender']
+
+        # Get message based on emotion
         message = get_message_based_on_emotion(emotion)
         print(message)
-        # speak_message(message)
         if message:
             print('if...else')
             threading.Thread(target=speak_message, args=(message,)).start()
 
-        face_recognition = DeepFace.find(img_face, db_path=db_path, enforce_detection=False)
-        
-
         if face_recognition and not face_recognition[0].empty:
-
             print('Match')
-
             first_result = face_recognition[0]
             similar_face_path = first_result.iloc[0]['identity']
             similar_face_path = os.path.normpath(similar_face_path)
-            print('Path facee: ',similar_face_path)
-            cs_id,_ = os.path.splitext(os.path.basename(similar_face_path))
-
+            print('Path face: ', similar_face_path)
+            cs_id, _ = os.path.splitext(os.path.basename(similar_face_path))
             print('name is: ', cs_id)
-
         else:
             print('Not match any')
             cs_id = 0
 
-        insert_db(datetime_detect, gender, age, cs_id, emotion,img_face, img_full_flip) #insert into db
+        # Insert data into database
+        insert_db(datetime_detect, gender, age, cs_id, emotion, img_face, img_full_flip)
 
         face_id = f"{x}-{y}-{w}-{h}"
-        print('faceid:' ,face_id)
+        print('faceid:', face_id)
         saved_faces.add(face_id)
 
     except Exception as e:
         print("Error is :", e)
-
 # Function to generate video frames
 def get_frames(video, saved_faces, db_path):
     trackers = []

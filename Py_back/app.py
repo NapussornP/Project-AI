@@ -14,6 +14,7 @@ import pyttsx3
 import random
 import concurrent.futures
 from flask import jsonify
+import requests
 
 
 
@@ -54,54 +55,87 @@ def speak_message(message):
     engine.say(message)
     engine.runAndWait()
 
-def get_message_based_on_emotion(emotion_text):
-    result_emotion = select_emoId(emotion_text)
-    # print('Emo jaa :' ,emotion_text)
-    text_speech =  f"SELECT Message FROM text WHERE EmoID = '{result_emotion}' "
-    # print(text_speech)
-    try:
-        db.execute(text_speech)
-        messages = db.fetchall()
-        if messages:
-            print('meet the message')
-            return random.choice(messages)[0]
-        else:
-            return None
-    except mysql.connector.Error as err:
-        print('Querry Text Error: ', err)
+# def get_message_based_on_emotion(emotion_text):
+#     result_emotion = select_emoId(emotion_text)
+#     # print('Emo jaa :' ,emotion_text)
+#     text_speech =  f"SELECT Message FROM text WHERE EmoID = '{result_emotion}' "
+#     # print(text_speech)
+#     try:
+#         db.execute(text_speech)
+#         messages = db.fetchall()
+#         if messages:
+#             print('meet the message')
+#             return random.choice(messages)[0]
+#         else:
+#             return None
+#     except mysql.connector.Error as err:
+#         print('Querry Text Error: ', err)
     
 
 
 def select_emoId(emoName):
-    emo_id_querry = f"SELECT EmoID FROM emotion WHERE EmoName = '{emoName}' "
     try:
-        db.execute(emo_id_querry)
-        result = db.fetchone()
-        if result:
-            emo_id = result[0]
+        response = requests.get("http://localhost:8081/selectEmoID", json={"emoName": emoName})
+        
+        if response.status_code == 200:
+            result = response.json()
+            print('result: ',result)
+            emo_id = result[0]['EmoID']  
             return emo_id
-    except mysql.connector.Error as err:
-        print('Error db: ', err)
+        else:
+            print("Failed to select emotion id:", response.json())
+    except Exception as e:
+        print("Error:", e)
     return None
 
-def insert_db(datetime, gender, age, cs_id, emotion, s_pic, l_pic ):
-    
-    emo_id = select_emoId(emotion)
+MAX_WIDTH = 200
+def resize_image(image):
+    height, width = image.shape[:2]
+    if width > MAX_WIDTH:
+        height = int(height * (MAX_WIDTH / width))
+        width = MAX_WIDTH
+    resized_image = cv2.resize(image, (width, height))
+    return resized_image
 
-    small_img = base64.b64encode(cv2.imencode('.jpg', s_pic)[1]).decode()
-    large_img = base64.b64encode(cv2.imencode('.jpg', l_pic)[1]).decode()
-    
-    sql = '''INSERT INTO transaction (Date_time, CSGender, CSAge, CSID, EmoID, S_Pic, L_Pic)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)'''
-    
-    value = (datetime, gender, age, cs_id,emo_id,small_img,large_img)
-    print('Querry:  ',datetime, gender, age, cs_id,emo_id)
+def image_to_base64(image):
+    _, buffer = cv2.imencode('.jpg', image)
+    base64_image = base64.b64encode(buffer).decode('utf-8')
+    return base64_image
+
+def insert_db(datetime, gender, age, cs_id, emotion, s_pic, l_pic):
+    print(emotion)
+    emo_id = select_emoId(emotion)
+    print('emoID: ', emo_id)
+
+    # Resize images
+    s_pic_resized = resize_image(s_pic)
+    l_pic_resized = resize_image(l_pic)
+
+    # Convert resized images to base64
+    small_img_base64 = image_to_base64(s_pic_resized)
+    large_img_base64 = image_to_base64(l_pic_resized)
+
+    datetime_str = datetime.strftime("%Y-%m-%d %H:%M:%S")
+
+    data = {
+        "Date_time": datetime_str,
+        "CSGender": gender,
+        "CSAge": age,
+        "CSID": cs_id,
+        "EmoID": emo_id,
+        "S_Pic": small_img_base64,
+        "L_Pic": large_img_base64
+    }
 
     try:
-        db.execute(sql,value)
-        connection.commit()
-    except db.connector.Error as err:
-        print('Error db: ',err)
+        response = requests.post("http://localhost:8081/insertPy", json=data)
+        if response.status_code == 200:
+            print("Data sent successfully")
+        else:
+            print("Failed to send data:", response.json())
+    except Exception as e:
+        print("Error insert:", e)
+
 
 
 
@@ -142,11 +176,11 @@ def face_detection(img_face, x, y, w, h, img_full_flip, saved_faces, db_path):
         gender = detec_gender[0]['dominant_gender']
 
         # Get message based on emotion
-        message = get_message_based_on_emotion(emotion)
-        print(message)
-        if message:
-            print('if...else')
-            threading.Thread(target=speak_message, args=(message,)).start()
+        # message = get_message_based_on_emotion(emotion)
+        # print(message)
+        # if message:
+        #     print('if...else')
+        #     threading.Thread(target=speak_message, args=(message,)).start()
 
         if face_recognition and not face_recognition[0].empty:
             print('Match')

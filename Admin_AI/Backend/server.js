@@ -6,6 +6,7 @@ const path = require("path");
 // const { json } = require("body-parser");
 // const bodyParser = require("body-parser");
 const axios = require("axios");
+const { error } = require("console");
 
 const app = express();
 app.use(express.json());
@@ -140,7 +141,7 @@ app.post("/AddUser", (req, res) => {
       res.status(200).json({ message: "User added successfully" });
 
       axios
-        .get("http://127.0.0.1:8081/savetoDir")
+        .get("http://127.0.0.1:5001/savetoDir")
         .then(() => {
           console.log("Python API called successfully");
         })
@@ -901,6 +902,42 @@ app.get("/uploadtofolder", (req, res) => {
       return res.json(err);
     } else {
       return res.json(data);
+    }
+  });
+});
+
+app.post("/insertPy", (req, res) => {
+  const { Date_time, CSGender, CSAge, CSID, EmoID, S_Pic, L_Pic } = req.body;
+  // console.log(req.body);
+  const sql = `INSERT INTO transaction (Date_time, CSGender, CSAge, CSID, EmoID, S_Pic, L_Pic)
+  VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+  db.query(
+    sql,
+    [Date_time, CSGender, CSAge, CSID, EmoID, S_Pic, L_Pic],
+    (error, result) => {
+      if (error) {
+        console.error("Error inserting from kiosk:", error);
+        res.status(500).json({ message: "Failed to inserting from kiosk" });
+      } else {
+        console.log("Kiosk insert successfully");
+        res.status(200).json({ message: "Kiosk insert successfully" });
+      }
+    }
+  );
+});
+
+app.get("/selectEmoID", (req, res) => {
+  const emoName = req.body.emoName;
+  console.log(emoName);
+  const sql = `SELECT EmoID FROM emotion WHERE EmoName = ?`;
+  db.query(sql, [emoName], (error, result) => {
+    if (error) {
+      console.log("Error selecting Emotion ID: ", error);
+      return res.status(500).json({ message: "Failed to select emotion id" });
+    } else {
+      console.log("select emotion id successfully");
+      return res.json(result);
     }
   });
 });

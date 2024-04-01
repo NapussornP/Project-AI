@@ -9,13 +9,12 @@ import requests
 # import tensorflow as tf
 from datetime import datetime
 import base64
-import mysql.connector
 import pyttsx3
 import random
 import concurrent.futures
 from flask import jsonify
 import requests
-
+import glob
 
 
 app = Flask(__name__)
@@ -24,14 +23,6 @@ CORS(app)
 # Initialize camera
 video = cv2.VideoCapture(0)
 
-connection = mysql.connector.connect(
-  host="localhost",
-  user="root",
-  password="",
-  database="ai"
-)
-
-db = connection.cursor()
 
 if not video.isOpened():
     print("Error: Could not open video.")
@@ -40,10 +31,13 @@ if not video.isOpened():
 # Load Haar Cascade for face detection
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-current_directory = Path(__file__).parent
-db_path = current_directory.parent.parent / 'AI' / 'Admin_AI' / 'frontend' / 'img_test'
+# current_directory = Path(__file__).parent
+# db_path = current_directory.parent.parent / 'AI' / 'Admin_AI' / 'frontend' / 'img_test'
 # db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "a")
 # print('Check Path:', db_path)
+current_directory = Path(__file__).parent
+db_path = current_directory / 'UserImage'
+# print("Is db_path exists:", os.path.exists(db_path))
 
 
 TH_voice_id = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_THAI"
@@ -161,21 +155,25 @@ def face_detection(img_face, x, y, w, h, img_full_flip, saved_faces, db_path):
         def analyze_gender():
             return DeepFace.analyze(img_face, actions='gender', enforce_detection=False)
 
-        def find_face():
-            return DeepFace.find(img_face, db_path=db_path, enforce_detection=False)
+        def find_face(image_path):
+            print('1')
+            print("Is db_path exists2:", os.path.exists(db_path))
+            result = DeepFace.find(img_face, db_path=image_path, enforce_detection=False)
+            print(result)
+            return result
+        def face_verify(image_path):
+            return DeepFace.verify(img_face, img2_path=image_path, enforce_detection=False)
 
         # Analyze emotion, age, and gender concurrently
         with concurrent.futures.ThreadPoolExecutor() as executor:
             emo_future = executor.submit(analyze_emotion)
             age_future = executor.submit(analyze_age)
             gender_future = executor.submit(analyze_gender)
-            face_find_future = executor.submit(find_face)
 
             # Get results from futures
             detec_emo = emo_future.result()
             detec_age = age_future.result()
             detec_gender = gender_future.result()
-            face_recognition = face_find_future.result()
 
         # Extract emotion, age, and gender from the analysis
         emotion = detec_emo[0]['dominant_emotion']
@@ -188,17 +186,39 @@ def face_detection(img_face, x, y, w, h, img_full_flip, saved_faces, db_path):
         if message:
             threading.Thread(target=speak_message, args=(message,)).start()
 
-        if face_recognition and not face_recognition[0].empty:
-            print('Match')
-            first_result = face_recognition[0]
-            similar_face_path = first_result.iloc[0]['identity']
-            similar_face_path = os.path.normpath(similar_face_path)
-            print('Path face: ', similar_face_path)
-            cs_id, _ = os.path.splitext(os.path.basename(similar_face_path))
-            print('name is: ', cs_id)
-        else:
-            print('Not match any')
-            cs_id = 0
+        image_paths = glob.glob(str(db_path / '**/*.jpg'), recursive=True)
+        for image_path in image_paths:
+            print('path img find: ', image_path)
+            result = face_verify(image_path)
+            if result['verified'] == True:
+                print('Match User')
+                break
+            else:
+                print('not match any')
+            
+            # result = DeepFace.find(img_face, db_path=image_path, enforce_detection=False)
+            # if result is not None and not result.empty:
+            #     # พบใบหน้าในภาพ
+            #     print('Match found!')
+            #     break
+            #     # ดำเนินการเพิ่มเติมตามต้องการที่นี่
+            # else:
+            #     # ไม่พบใบหน้าในภาพ
+            #     print('No match found for', image_path)
+            # DeepFace.find(img_face, db_path=image_path, enforce_detection=False)            
+            # print(face_recognition)
+            # if face_recognition and not face_recognition[0].empty:
+            #     print('Match')
+            #     first_result = face_recognition[0]
+            #     similar_face_path = first_result.iloc[0]['identity']
+            #     similar_face_path = os.path.normpath(similar_face_path)
+            #     print('Path face: ', similar_face_path)
+            #     # cs_id, _ = os.path.splitext(os.path.basename(similar_face_path))
+            #     # print('name is: ', cs_id)
+            #     break
+            # else:
+            #     print('Not match any')
+            #     cs_id = 0
 
         # Insert data into database
         # insert_db(datetime_detect, gender, age, cs_id, emotion, img_face, img_full_flip)
@@ -271,9 +291,6 @@ def create_image_folders_and_save_images():
 def video_feed():
     return Response(get_frames(video, set(), db_path),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
-
-
-
 
 @app.route('/HelloHowAreYou')
 def get_info():

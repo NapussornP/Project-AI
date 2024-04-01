@@ -55,21 +55,28 @@ def speak_message(message):
     engine.say(message)
     engine.runAndWait()
 
-# def get_message_based_on_emotion(emotion_text):
-#     result_emotion = select_emoId(emotion_text)
-#     # print('Emo jaa :' ,emotion_text)
-#     text_speech =  f"SELECT Message FROM text WHERE EmoID = '{result_emotion}' "
-#     # print(text_speech)
-#     try:
-#         db.execute(text_speech)
-#         messages = db.fetchall()
-#         if messages:
-#             print('meet the message')
-#             return random.choice(messages)[0]
-#         else:
-#             return None
-#     except mysql.connector.Error as err:
-#         print('Querry Text Error: ', err)
+def get_message_based_on_emotion(emotion_text):
+    emotion = select_emoId(emotion_text)
+    # print('Emo jaa :' ,emotion)
+    try:
+        response = requests.get("http://localhost:8081/texttospeech", params={"emotion": emotion})
+        # print(response)
+        if response.status_code == 200:
+            result = response.json()
+            # print('result: ',result)
+            messages = []  
+            for item in result:
+                messages.append(item["Message"]) 
+            random_message = random.choice(messages)
+            print('random: ', random_message)
+            # print('random: ', messages)
+                
+            return random_message
+        else:
+            print("Failed to send data:", response.json())
+        
+    except Exception as e:
+        print("Error:", e)
     
 
 
@@ -79,7 +86,7 @@ def select_emoId(emoName):
         
         if response.status_code == 200:
             result = response.json()
-            print('result: ',result)
+            
             emo_id = result[0]['EmoID']  
             return emo_id
         else:
@@ -176,11 +183,10 @@ def face_detection(img_face, x, y, w, h, img_full_flip, saved_faces, db_path):
         gender = detec_gender[0]['dominant_gender']
 
         # Get message based on emotion
-        # message = get_message_based_on_emotion(emotion)
+        message = get_message_based_on_emotion(emotion)
         # print(message)
-        # if message:
-        #     print('if...else')
-        #     threading.Thread(target=speak_message, args=(message,)).start()
+        if message:
+            threading.Thread(target=speak_message, args=(message,)).start()
 
         if face_recognition and not face_recognition[0].empty:
             print('Match')
@@ -195,7 +201,7 @@ def face_detection(img_face, x, y, w, h, img_full_flip, saved_faces, db_path):
             cs_id = 0
 
         # Insert data into database
-        insert_db(datetime_detect, gender, age, cs_id, emotion, img_face, img_full_flip)
+        # insert_db(datetime_detect, gender, age, cs_id, emotion, img_face, img_full_flip)
 
         face_id = f"{x}-{y}-{w}-{h}"
         print('faceid:', face_id)

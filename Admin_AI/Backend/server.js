@@ -894,9 +894,12 @@ app.get("/TeachingSchedule", (req, res) => {
   });
 });
 
+// -------------kiosk-----------------------
 app.get("/uploadtofolder", (req, res) => {
-  const sql =
-    "SELECT `CSID`, `CSName`, `Role`, `CSImg`, `img_64` FROM `csuser`";
+  // const sql =
+  //   "SELECT CSID, CSName, Role, CSImg, img_64 FROM csuser";
+
+  const sql = `SELECT CSID, CSName, Role, CSImg, img_64 FROM csuser ORDER BY csuser.CSID DESC LIMIT 1;`;
   db.query(sql, (err, data) => {
     if (err) {
       return res.json(err);
@@ -942,6 +945,22 @@ app.get("/selectEmoID", (req, res) => {
   });
 });
 
+app.get("/texttospeech", (req, res) => {
+  // console.log("1");
+  const emo_id = req.query.emotion;
+  // console.log("msg emoid: ", emo_id);
+  const sql = `SELECT Message FROM text WHERE EmoID = ?`;
+
+  db.query(sql, [emo_id], (error, result) => {
+    if (error) {
+      console.log("Error query message: ", error);
+      return res.status(500).json({ message: "Failed to select message" });
+    } else {
+      console.log("select emotion id successfully");
+      return res.json(result);
+    }
+  });
+});
 app.listen(8081, () => {
   console.log("listening");
 });

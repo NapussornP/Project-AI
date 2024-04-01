@@ -1,71 +1,73 @@
-const express = require('express');
-const mysql = require('mysql')
-const cors = require('cors')
-const multer  = require('multer');
-const path = require('path'); 
-const { json } = require('body-parser');
+const express = require("express");
+const mysql = require("mysql");
+const cors = require("cors");
+const multer = require("multer");
+const path = require("path");
+// const { json } = require("body-parser");
+// const bodyParser = require("body-parser");
+const axios = require("axios");
 
-const app = express()
-app.use(express.json())
-app.use(cors())
+const app = express();
+app.use(express.json());
+app.use(cors());
 
+// app.use(bodyParser.json({ limit: "50mb" }));
+// app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
-
-const storage = multer.memoryStorage(); 
+const storage = multer.memoryStorage();
 
 const upload = multer({ storage: storage });
 
-app.post('/upload', upload.single('image'), function (req, res, next) {
+app.post("/upload", upload.single("image"), function (req, res, next) {
   const file = req.file;
 
-  
-  const nextCSIDQuery = 'SELECT CSID + 1 AS NextCSID FROM CSUser ORDER BY CSID DESC LIMIT 1';
+  const nextCSIDQuery =
+    "SELECT CSID + 1 AS NextCSID FROM CSUser ORDER BY CSID DESC LIMIT 1";
 
   db.query(nextCSIDQuery, (err, results) => {
     if (err) {
-      console.error('Error getting the next CSID:', err);
-      res.status(500).json({ error: 'Error getting the next CSID from the database' });
+      console.error("Error getting the next CSID:", err);
+      res
+        .status(500)
+        .json({ error: "Error getting the next CSID from the database" });
     } else {
-      
       const nextCSID = results[0] ? results[0].NextCSID : 1;
-      console.log('Query results:', results);
-    //   const nextCSID = results[0].NextCSID ;
-    
+      console.log("Query results:", results);
+      //   const nextCSID = results[0].NextCSID ;
 
       const filename = nextCSID + path.extname(file.originalname);
 
-      // Save 
-      const destination = path.join('../frontend/img_test/', filename);
-      require('fs').writeFileSync(destination, file.buffer);
-    
-      console.log(destination)
-      console.log('File saved successfully:', filename);
-      res.send(destination);
+      // Save
+      const destination = path.join("../frontend/img_test/", filename);
+      require("fs").writeFileSync(destination, file.buffer);
 
-      
+      console.log(destination);
+      console.log("File saved successfully:", filename);
+      res.send(destination);
     }
   });
-})
+});
 
-
-
-
+var host = "localhost";
+if (process.env.NODE_ENV == "production") {
+  host = "mysql-server";
+}
 
 const db = mysql.createConnection({
-    host: "localhost",
-    user: 'root',
-    password: '',
-    database: 'ai'
-})
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "ai",
+});
 
-app.get('/' , (re, res) => {
-    return res.json("From Backend Side")
-})
+app.get("/", (re, res) => {
+  return res.json("From Backend Side");
+});
 
-app.get('/Search', (req, res) => {
-    // const sql = "SELECT * FROM transaction"
-    // const sql = "SELECT t.Date_time, t.CSGender, t.CSAge, u.CSName AS UserName, e.EmoName AS EmotionName, t.S_Pic, t.L_Pic FROM Transaction t JOIN `CSUser` u ON t.CSID = u.CSID JOIN Emotion e ON t.EmoID = e.EmoID"
-    const sql = `
+app.get("/Search", (req, res) => {
+  // const sql = "SELECT * FROM transaction"
+  // const sql = "SELECT t.Date_time, t.CSGender, t.CSAge, u.CSName AS UserName, e.EmoName AS EmotionName, t.S_Pic, t.L_Pic FROM Transaction t JOIN `CSUser` u ON t.CSID = u.CSID JOIN Emotion e ON t.EmoID = e.EmoID"
+  const sql = `
                 SELECT
                 t.Date_time,
                 t.CSGender,
@@ -83,79 +85,87 @@ app.get('/Search', (req, res) => {
             ORDER BY 
                 t.Date_time;
                 `;
-    
-    db.query(sql, (err, data) => {
-        if(err) return res.json(err);
-        return res.json(data)
-    })
-})
 
-
-app.post('/Login', (req, res) => {
-    const sql = "SELECT * FROM admin WHERE AdUsername = ? AND AdPassword = ? "
-    db.query(sql, [req.body.username, req.body.password], (err, data) => {
-        if(err) return res.json("err");
-        if(data.length > 0){
-            return res.json("Login success")
-        }else{
-            return res.json("No record")
-        }
-    })
-})
-
-app.get('/User', (req, res) => {
-    const sql = 'SELECT * FROM `csuser` WHERE 1';
-    db.query(sql, (err, data) => {
-        if(err) return res.json(err)
-        return res.json(data)
-    })
-})
-app.delete('/deleteUser/:userId', (req, res) => {
-    const userId = req.params.userId;
-
-    const sql = 'DELETE FROM CSUser WHERE CSID = ?';
-    db.query(sql, [userId], (err, result) => {
-        if (err) {
-            console.error('Error deleting user:', err);
-            res.status(500).json({ message: 'Failed to delete user' });
-        } else {
-            console.log('User deleted successfully');
-            res.status(200).json({ message: 'User deleted successfully' });
-        }
-    });
+  db.query(sql, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
 });
 
-app.post('/AddUser', (req, res) => {
-    const { CSName, role, imgpath } = req.body;
-    console.log(req.body)
-    const sql = 'INSERT INTO CSUser (CSName, Role, CSImg) VALUES (?, ?, ?)';
-  
-    db.query(sql, [CSName, role, imgpath], (error, results) => {
-      if (error) {
-        console.error('Error inserting user:',error);
-        res.status(500).json({ message: 'Failed to add user' });
-      } else {
-        console.log('User added successfully');
-        res.status(200).json({ message: 'User added successfully' });
-      }
-    });
+app.post("/Login", (req, res) => {
+  const sql = "SELECT * FROM admin WHERE AdUsername = ? AND AdPassword = ? ";
+  db.query(sql, [req.body.username, req.body.password], (err, data) => {
+    if (err) return res.json("err");
+    if (data.length > 0) {
+      return res.json("Login success");
+    } else {
+      return res.json("No record");
+    }
   });
-  
+});
+
+app.get("/User", (req, res) => {
+  const sql = "SELECT * FROM `csuser` WHERE 1";
+  db.query(sql, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+});
+app.delete("/deleteUser/:userId", (req, res) => {
+  const userId = req.params.userId;
+
+  const sql = "DELETE FROM CSUser WHERE CSID = ?";
+  db.query(sql, [userId], (err, result) => {
+    if (err) {
+      console.error("Error deleting user:", err);
+      res.status(500).json({ message: "Failed to delete user" });
+    } else {
+      console.log("User deleted successfully");
+      res.status(200).json({ message: "User deleted successfully" });
+    }
+  });
+});
+
+app.post("/AddUser", (req, res) => {
+  const { CSName, role, img_64 } = req.body;
+  // console.log(req.body);
+  const sql = "INSERT INTO CSUser (CSName, Role, 	img_64) VALUES (?, ?, ?)";
+
+  db.query(sql, [CSName, role, img_64], (error, results) => {
+    if (error) {
+      console.error("Error inserting user:", error);
+      res.status(500).json({ message: "Failed to add user" });
+    } else {
+      console.log("User added successfully");
+      res.status(200).json({ message: "User added successfully" });
+
+      axios
+        .get("http://127.0.0.1:8081/savetoDir")
+        .then(() => {
+          console.log("Python API called successfully");
+        })
+        .catch((error) => {
+          console.error("Error calling Python API:", error);
+        });
+    }
+  });
+});
+
 // normal dash
 
 // app.get('/dashboard', (req, res) => {
 //     const sql = `
-//             SELECT 
+//             SELECT
 //             e.EmoName,
 //             COALESCE(COUNT(t.EmoID), 0) AS EmoCount,
 //             d.DayName AS DayOfWeek
-//         FROM 
+//         FROM
 //             emotion e
 //         CROSS JOIN
 //             (SELECT DISTINCT DAYNAME(Date_time) AS DayName FROM transaction) d
-//         LEFT JOIN 
+//         LEFT JOIN
 //             transaction t ON e.EmoID = t.EmoID AND DAYNAME(t.Date_time) = d.DayName
-//         GROUP BY 
+//         GROUP BY
 //             e.EmoName, DayOfWeek
 //         ORDER BY
 //             FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
@@ -237,114 +247,125 @@ app.post('/AddUser', (req, res) => {
 //                 },
 //             },
 //             // colors: ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'brown'],
-            
-            
-//         };
 
-        
+//         };
 
 //         const stackedBarChartData = { series, options };
 //         // console.log('Days length:', days.length);
 //         // console.log('Series length:', series.length);
 
-
 //         return res.json(stackedBarChartData);
 //     });
 // });
 
-app.get('/dashboard', (req, res) => {
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ];
-    const seriesColors = ['#FF3EA5', '#008ffb', '#00E396', 'rgb(119, 93, 208)', '#4d1b28', 'rgb(255, 69, 96)', 'rgb(254, 176, 25)'];
+app.get("/dashboard", (req, res) => {
+  const days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
+  const seriesColors = [
+    "#FF3EA5",
+    "#008ffb",
+    "#00E396",
+    "rgb(119, 93, 208)",
+    "#4d1b28",
+    "rgb(255, 69, 96)",
+    "rgb(254, 176, 25)",
+  ];
 
-    const series = [];
-    for (let i = 0; i < 7; i++) {
-        const newData = Array(days.length).fill(0);
+  const series = [];
+  for (let i = 0; i < 7; i++) {
+    const newData = Array(days.length).fill(0);
 
-        
-        series.push({
-            name: "",
-            data: newData,
-            // color: seriesColors[i % seriesColors.length],
-        });
-    }
+    series.push({
+      name: "",
+      data: newData,
+      // color: seriesColors[i % seriesColors.length],
+    });
+  }
 
-    const options = {
-        title: {
-            text: "cs kmutnb emotion",
+  const options = {
+    title: {
+      text: "cs kmutnb emotion",
+    },
+    chart: {
+      stacked: true,
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+        columnWidth: "100%",
+      },
+    },
+    stroke: {
+      width: 1,
+    },
+    xaxis: {
+      title: {
+        text: "Number of Emotions",
+      },
+      categories: days,
+    },
+    yaxis: {
+      title: {
+        text: "7 Days",
+      },
+    },
+    legend: {
+      position: "bottom",
+    },
+    dataLabels: {
+      enabled: true,
+    },
+    grid: {
+      show: true,
+      xaxis: {
+        lines: {
+          show: false,
         },
-        chart: {
-            stacked: true,
+      },
+      yaxis: {
+        lines: {
+          show: false,
         },
-        plotOptions: {
-            bar: {
-                horizontal: true,
-                columnWidth: '100%',
-            },
-        },
-        stroke: {
-            width: 1,
-        },
-        xaxis: {
-            title: {
-                text: "Number of Emotions",
-            },
-            categories: days,
-        },
-        yaxis: {
-            title: {
-                text: "7 Days",
-            },
-        },
-        legend: {
-            position: 'bottom',
-        },
-        dataLabels: {
-            enabled: true,
-        },
-        grid: {
-            show: true,
-            xaxis: {
-                lines: {
-                    show: false,
-                },
-            },
-            yaxis: {
-                lines: {
-                    show: false,
-                },
-            },
-        },
-    };
+      },
+    },
+  };
 
-    const stackedBarChartData = { series, options };
+  const stackedBarChartData = { series, options };
 
-    res.json(stackedBarChartData);
+  res.json(stackedBarChartData);
 });
 
-app.get('/StartTimeDashboard', (req, res) => {
-    const csName = req.query.csName;
-    const semester = req.query.semester;
-    const academicYear = req.query.academicYear;
-    // const sql = `
-    //     SELECT 
-    //         e.EmoName,
-    //         COALESCE(COUNT(t.EmoID), 0) AS EmoCount,
-    //         d.DayName AS DayOfWeek
-    //     FROM 
-    //         emotion e
-    //     CROSS JOIN
-    //         (SELECT DISTINCT DAYNAME(Date_time) AS DayName FROM transaction) d
-    //     LEFT JOIN 
-    //         transaction t ON e.EmoID = t.EmoID AND DAYNAME(t.Date_time) = d.DayName
-    //     WHERE 
-    //         t.CSID = (SELECT CSID FROM csuser WHERE CSName = ?)
-    //     GROUP BY 
-    //         e.EmoName, DayOfWeek
-    //     ORDER BY
-    //         FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
-    // `;
+app.get("/StartTimeDashboard", (req, res) => {
+  const csName = req.query.csName;
+  const semester = req.query.semester;
+  const academicYear = req.query.academicYear;
+  // const sql = `
+  //     SELECT
+  //         e.EmoName,
+  //         COALESCE(COUNT(t.EmoID), 0) AS EmoCount,
+  //         d.DayName AS DayOfWeek
+  //     FROM
+  //         emotion e
+  //     CROSS JOIN
+  //         (SELECT DISTINCT DAYNAME(Date_time) AS DayName FROM transaction) d
+  //     LEFT JOIN
+  //         transaction t ON e.EmoID = t.EmoID AND DAYNAME(t.Date_time) = d.DayName
+  //     WHERE
+  //         t.CSID = (SELECT CSID FROM csuser WHERE CSName = ?)
+  //     GROUP BY
+  //         e.EmoName, DayOfWeek
+  //     ORDER BY
+  //         FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+  // `;
 
-    const sql = `
+  const sql = `
         SELECT 
         e.EmoName,
             COALESCE(COUNT(t.EmoID), 0) AS EmoCount,
@@ -380,110 +401,127 @@ app.get('/StartTimeDashboard', (req, res) => {
                 FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
     `;
 
-    db.query(sql, [csName, semester, academicYear], (err, data) => {
-        if (err) return res.json(err);
+  db.query(sql, [csName, semester, academicYear], (err, data) => {
+    if (err) return res.json(err);
 
-        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        const seriesColors = ['#FF3EA5', '#008ffb', '#00E396', 'rgb(119, 93, 208)', '#4d1b28', 'rgb(255, 69, 96)', 'rgb(254, 176, 25)'];
+    const days = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ];
+    const seriesColors = [
+      "#FF3EA5",
+      "#008ffb",
+      "#00E396",
+      "rgb(119, 93, 208)",
+      "#4d1b28",
+      "rgb(255, 69, 96)",
+      "rgb(254, 176, 25)",
+    ];
 
-        const series = data.reduce((result, item, index) => {
-            const existingEmotion = result.find(entry => entry.name === item.EmoName);
-            const dayIndex = days.indexOf(item.DayOfWeek);
+    const series = data.reduce((result, item, index) => {
+      const existingEmotion = result.find(
+        (entry) => entry.name === item.EmoName
+      );
+      const dayIndex = days.indexOf(item.DayOfWeek);
 
-            if (existingEmotion) {
-                // Set data according to the const days
-                existingEmotion.data[dayIndex] = item.EmoCount;
-            } else {
-                const newData = Array(days.length).fill(0);
-                newData[dayIndex] = item.EmoCount;
+      if (existingEmotion) {
+        // Set data according to the const days
+        existingEmotion.data[dayIndex] = item.EmoCount;
+      } else {
+        const newData = Array(days.length).fill(0);
+        newData[dayIndex] = item.EmoCount;
 
-                let color;
-                if (item.EmoName === 'fear') {
-                    color = seriesColors[3]; 
-                } else if(item.EmoName === 'surprise'){
-                    color = seriesColors[6];
-                }else if(item.EmoName === 'neutral'){
-                    color = seriesColors[2];
-                }else if(item.EmoName === 'angry'){
-                    color = seriesColors[5];
-                }else if(item.EmoName === 'happy'){
-                    color = seriesColors[0];
-                }else if(item.EmoName === 'sad'){
-                    color = seriesColors[1];
-                }else if(item.EmoName === 'disgust'){
-                    color = seriesColors[4];
-                }
+        let color;
+        if (item.EmoName === "fear") {
+          color = seriesColors[3];
+        } else if (item.EmoName === "surprise") {
+          color = seriesColors[6];
+        } else if (item.EmoName === "neutral") {
+          color = seriesColors[2];
+        } else if (item.EmoName === "angry") {
+          color = seriesColors[5];
+        } else if (item.EmoName === "happy") {
+          color = seriesColors[0];
+        } else if (item.EmoName === "sad") {
+          color = seriesColors[1];
+        } else if (item.EmoName === "disgust") {
+          color = seriesColors[4];
+        }
 
-                result.push({
-                    name: item.EmoName,
-                    data: newData,
-                    color: color,
-                });
-            }
+        result.push({
+          name: item.EmoName,
+          data: newData,
+          color: color,
+        });
+      }
 
-            return result;
-        }, []);
+      return result;
+    }, []);
 
-        const options = {
-            title: {
-                text: "Start Class",
-            },
-            chart: {
-                stacked: true,
-            },
-            plotOptions: {
-                bar: {
-                    horizontal: true,
-                    columnWidth: '100%',
-                },
-            },
-            stroke: {
-                width: 1,
-            },
-            xaxis: {
-                title: {
-                    text: "Number of Emotions",
-                },
-                categories: days,
-            },
-            yaxis: {
-                title: {
-                    text: "7 Days",
-                },
-            },
-            legend: {
-                position: 'bottom',
-            },
-            dataLabels: {
-                enabled: true,
-            },
-            grid: {
-                show: true,
-                xaxis: {
-                    lines: {
-                        show: false,
-                    },
-                },
-                yaxis: {
-                    lines: {
-                        show: false,
-                    },
-                },
-            },
-        };
+    const options = {
+      title: {
+        text: "Start Class",
+      },
+      chart: {
+        stacked: true,
+      },
+      plotOptions: {
+        bar: {
+          horizontal: true,
+          columnWidth: "100%",
+        },
+      },
+      stroke: {
+        width: 1,
+      },
+      xaxis: {
+        title: {
+          text: "Number of Emotions",
+        },
+        categories: days,
+      },
+      yaxis: {
+        title: {
+          text: "7 Days",
+        },
+      },
+      legend: {
+        position: "bottom",
+      },
+      dataLabels: {
+        enabled: true,
+      },
+      grid: {
+        show: true,
+        xaxis: {
+          lines: {
+            show: false,
+          },
+        },
+        yaxis: {
+          lines: {
+            show: false,
+          },
+        },
+      },
+    };
 
-        const stackedBarChartData = { series, options };
+    const stackedBarChartData = { series, options };
 
-        res.json(stackedBarChartData);
-    });
+    res.json(stackedBarChartData);
+  });
 });
 
-
-app.get('/FinishTimeDashboard', (req, res) => {
-    const csName = req.query.csName;
-    const semester = req.query.semester;
-    const academicYear = req.query.academicYear;
-    const sql = `
+app.get("/FinishTimeDashboard", (req, res) => {
+  const csName = req.query.csName;
+  const semester = req.query.semester;
+  const academicYear = req.query.academicYear;
+  const sql = `
         SELECT 
         e.EmoName,
             COALESCE(COUNT(t.EmoID), 0) AS EmoCount,
@@ -519,128 +557,139 @@ app.get('/FinishTimeDashboard', (req, res) => {
                 FIELD(DayOfWeek, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
     `;
 
-    db.query(sql, [csName, semester, academicYear], (err, data) => {
-        if (err) return res.json(err);
+  db.query(sql, [csName, semester, academicYear], (err, data) => {
+    if (err) return res.json(err);
 
-        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        const seriesColors = ['#FF3EA5', '#008ffb', '#00E396', 'rgb(119, 93, 208)', '#4d1b28', 'rgb(255, 69, 96)', 'rgb(254, 176, 25)'];
+    const days = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ];
+    const seriesColors = [
+      "#FF3EA5",
+      "#008ffb",
+      "#00E396",
+      "rgb(119, 93, 208)",
+      "#4d1b28",
+      "rgb(255, 69, 96)",
+      "rgb(254, 176, 25)",
+    ];
 
-        const series = data.reduce((result, item, index) => {
-            const existingEmotion = result.find(entry => entry.name === item.EmoName);
-            const dayIndex = days.indexOf(item.DayOfWeek);
+    const series = data.reduce((result, item, index) => {
+      const existingEmotion = result.find(
+        (entry) => entry.name === item.EmoName
+      );
+      const dayIndex = days.indexOf(item.DayOfWeek);
 
-            if (existingEmotion) {
-                // Set data according to the const days
-                existingEmotion.data[dayIndex] = item.EmoCount;
-            } else {
-                const newData = Array(days.length).fill(0);
-                newData[dayIndex] = item.EmoCount;
+      if (existingEmotion) {
+        // Set data according to the const days
+        existingEmotion.data[dayIndex] = item.EmoCount;
+      } else {
+        const newData = Array(days.length).fill(0);
+        newData[dayIndex] = item.EmoCount;
 
-                let color;
-                if (item.EmoName === 'fear') {
-                    color = seriesColors[3]; 
-                } else if(item.EmoName === 'surprise'){
-                    color = seriesColors[6];
-                }else if(item.EmoName === 'neutral'){
-                    color = seriesColors[2];
-                }else if(item.EmoName === 'angry'){
-                    color = seriesColors[5];
-                }else if(item.EmoName === 'happy'){
-                    color = seriesColors[0];
-                }else if(item.EmoName === 'sad'){
-                    color = seriesColors[1];
-                }else if(item.EmoName === 'disgust'){
-                    color = seriesColors[4];
-                }
+        let color;
+        if (item.EmoName === "fear") {
+          color = seriesColors[3];
+        } else if (item.EmoName === "surprise") {
+          color = seriesColors[6];
+        } else if (item.EmoName === "neutral") {
+          color = seriesColors[2];
+        } else if (item.EmoName === "angry") {
+          color = seriesColors[5];
+        } else if (item.EmoName === "happy") {
+          color = seriesColors[0];
+        } else if (item.EmoName === "sad") {
+          color = seriesColors[1];
+        } else if (item.EmoName === "disgust") {
+          color = seriesColors[4];
+        }
 
-                result.push({
-                    name: item.EmoName,
-                    data: newData,
-                    color: color,
-                });
-            }
+        result.push({
+          name: item.EmoName,
+          data: newData,
+          color: color,
+        });
+      }
 
-            return result;
-        }, []);
+      return result;
+    }, []);
 
-        const options = {
-            title: {
-                text: "Finish Class",
-            },
-            chart: {
-                stacked: true,
-            },
-            plotOptions: {
-                bar: {
-                    horizontal: true,
-                    columnWidth: '100%',
-                },
-            },
-            stroke: {
-                width: 1,
-            },
-            xaxis: {
-                title: {
-                    text: "Number of Emotions",
-                },
-                categories: days,
-            },
-            yaxis: {
-                title: {
-                    text: "7 Days",
-                },
-            },
-            legend: {
-                position: 'bottom',
-            },
-            dataLabels: {
-                enabled: true,
-            },
-            grid: {
-                show: true,
-                xaxis: {
-                    lines: {
-                        show: false,
-                    },
-                },
-                yaxis: {
-                    lines: {
-                        show: false,
-                    },
-                },
-            },
-        };
+    const options = {
+      title: {
+        text: "Finish Class",
+      },
+      chart: {
+        stacked: true,
+      },
+      plotOptions: {
+        bar: {
+          horizontal: true,
+          columnWidth: "100%",
+        },
+      },
+      stroke: {
+        width: 1,
+      },
+      xaxis: {
+        title: {
+          text: "Number of Emotions",
+        },
+        categories: days,
+      },
+      yaxis: {
+        title: {
+          text: "7 Days",
+        },
+      },
+      legend: {
+        position: "bottom",
+      },
+      dataLabels: {
+        enabled: true,
+      },
+      grid: {
+        show: true,
+        xaxis: {
+          lines: {
+            show: false,
+          },
+        },
+        yaxis: {
+          lines: {
+            show: false,
+          },
+        },
+      },
+    };
 
-        const stackedBarChartData = { series, options };
+    const stackedBarChartData = { series, options };
 
-        res.json(stackedBarChartData);
-    });
+    res.json(stackedBarChartData);
+  });
 });
 
+app.get("/csName", (req, res) => {
+  const sql = ` SELECT CSName FROM csuser WHERE Role = 'teacher' `;
+  // const sql = ` SELECT CSName FROM csuser  `;
 
-app.get('/csName', (req, res) => {
-    const sql = ` SELECT CSName FROM csuser WHERE Role = 'teacher' `;
-    // const sql = ` SELECT CSName FROM csuser  `;
-
-
-    db.query(sql, (err, result) => {
-        if(err){
-            console.log('Error fetching cs names: ', err);
-            res.result(500).send('Internal Server Error');
-        }
-        else{
-
-            res.json(result);
-        }
-    })
-})
-
-
-
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.log("Error fetching cs names: ", err);
+      res.result(500).send("Internal Server Error");
+    } else {
+      res.json(result);
+    }
+  });
+});
 
 // app.post('/createAd', (req, res) => {
 //     const { AdName, AdUsername, AdPassword } = req.body;
-  
+
 //     const sql = 'INSERT INTO admin (AdName, AdUsername, AdPassword) VALUES (?, ?, ?)';
 //     db.query(sql, [AdName, AdUsername, AdPassword], (err, result) => {
 //         if (err) {
@@ -659,7 +708,6 @@ app.get('/csName', (req, res) => {
 //     });
 //   });
 
-
 // normal
 // app.post('/insertSchedule', async (req, res) => {
 //     const { data, courseDetails } = req.body;
@@ -676,7 +724,7 @@ app.get('/csName', (req, res) => {
 
 //         const query = `
 //             INSERT INTO schedule (CID, CName, Day, StartTime, EndTime, semester, academicYear, CSID)
-//             SELECT 
+//             SELECT
 //                 ?, -- CID
 //                 ?, -- CName
 //                 DAYOFWEEK(?)-1, -- Day (assuming DAYOFWEEK returns 1 for Sunday)
@@ -685,9 +733,9 @@ app.get('/csName', (req, res) => {
 //                 ?, -- semester
 //                 ?, -- academicYear
 //                 csuser.CSID -- CSID
-//             FROM 
-//                 csuser 
-//             WHERE 
+//             FROM
+//                 csuser
+//             WHERE
 //                 csuser.CSName = ?;
 //         `;
 
@@ -705,41 +753,50 @@ app.get('/csName', (req, res) => {
 // });
 
 // not update exists schedule
-app.post('/insertSchedule', async (req, res) => {
-    const { data, courseDetails } = req.body;
+app.post("/insertSchedule", async (req, res) => {
+  const { data, courseDetails } = req.body;
 
-    try {
-        for (const schedule of data) {
-            const {
-                title,
-                startDate,
-                endDate
-            } = schedule;
+  try {
+    for (const schedule of data) {
+      const { title, startDate, endDate } = schedule;
 
-            const [CName, CID] = title.split(' ');
+      const [CName, CID] = title.split(" ");
 
-            // Check if the schedule already exists
-            const existingScheduleQuery = `
+      // Check if the schedule already exists
+      const existingScheduleQuery = `
                 SELECT COUNT(*) AS COUNT
                 FROM schedule
                 WHERE CID = ? AND Day = LOWER(DATE_FORMAT(?, '%a')) AND CSID = (SELECT CSID FROM csuser WHERE CSName= ? )
+                AND semester = ? 
+                AND academicYear = ?
+                AND schedule.StartTime = TIME(?)
                 LIMIT 1;
             `;
 
-            const existingScheduleValues = [CID, startDate, courseDetails.Tname];
+      const existingScheduleValues = [
+        CID,
+        startDate,
+        courseDetails.Tname,
+        courseDetails.semester,
+        courseDetails.academicYear,
+        startDate,
+      ];
 
-            db.query(existingScheduleQuery, existingScheduleValues, function(err, existingScheduleResult) {
-                if (err) {
-                    console.error('Error fetching existing schedule:', err);
-                    return res.status(500).json({ error: 'Internal Server Error' });
-                }
+      db.query(
+        existingScheduleQuery,
+        existingScheduleValues,
+        function (err, existingScheduleResult) {
+          if (err) {
+            console.error("Error fetching existing schedule:", err);
+            return res.status(500).json({ error: "Internal Server Error" });
+          }
 
-                console.log('existingScheduleResult: ', existingScheduleResult[0].COUNT);
+          // console.log('existingScheduleResult: ', existingScheduleResult[0].COUNT);
 
-                // If schedule does not exist, insert it
-                if (existingScheduleResult[0].COUNT === 0) {
-                    // Insert the schedule if it doesn't already exist
-                    const insertQuery = `
+          // If schedule does not exist, insert it
+          if (existingScheduleResult[0].COUNT === 0) {
+            // Insert the schedule if it doesn't already exist
+            const insertQuery = `
                         INSERT IGNORE INTO schedule (CID, CName, Day, StartTime, EndTime, semester, academicYear, CSID)
                         SELECT 
                             ?, -- CID
@@ -756,32 +813,98 @@ app.post('/insertSchedule', async (req, res) => {
                             csuser.CSName = ?;
                     `;
 
-                    const insertValues = [CID, CName, startDate, startDate, endDate, courseDetails.semester, courseDetails.academicYear, courseDetails.Tname];
+            const insertValues = [
+              CID,
+              CName,
+              startDate,
+              startDate,
+              endDate,
+              courseDetails.semester,
+              courseDetails.academicYear,
+              courseDetails.Tname,
+            ];
 
-                    db.query(insertQuery, insertValues, function(err, insertResult) {
-                        if (err) {
-                            console.error('Error inserting schedule:', err);
-                            return res.status(500).json({ error: 'Internal Server Error' });
-                        }
-                        
-                        console.log('Schedule inserted successfully');
-                    });
-                } else {
-                    console.log('Schedule already exists');
-                }
+            db.query(insertQuery, insertValues, function (err, insertResult) {
+              if (err) {
+                console.error("Error inserting schedule:", err);
+                return res.status(500).json({ error: "Internal Server Error" });
+              }
+
+              console.log("Schedule inserted successfully");
             });
+          } else {
+            console.log("Schedule already exists");
+          }
         }
-
-        console.log('All schedules processed successfully');
-        res.status(200).json({ message: 'All schedules processed successfully' });
-    } catch (error) {
-        console.error('Error inserting schedules:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+      );
     }
+
+    console.log("All schedules processed successfully");
+    res.status(200).json({ message: "All schedules processed successfully" });
+  } catch (error) {
+    console.error("Error inserting schedules:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
+app.delete("/TeachingSchedule/:id", (req, res) => {
+  const id = req.params.id;
 
+  const sql = ` DELETE FROM schedule WHERE id = ?`;
+  db.query(sql, [id], (err, data) => {
+    if (err) {
+      console.log("Error deleting Schedule: ", err);
+      re.status(500).json({ error: "error deleting schedule" });
+    } else {
+      res.json(data);
+    }
+  });
+});
+
+app.get("/TeachingSchedule", (req, res) => {
+  const semester = req.query.semester;
+  const academicYear = req.query.academicYear;
+  const csName = req.query.csName;
+
+  console.log("1");
+  console.log(semester + " " + academicYear + " " + csName);
+
+  const sql = `SELECT ID, CID, CName, Day, StartTime, EndTime FROM schedule s
+              JOIN csuser c on c.CSID = s.CSID
+              WHERE s.semester = ?
+              AND s.academicYear= ?
+              AND c.CSName= ?;`;
+
+  // try {
+  //   const result = await db.query(sql, [semester, academicYear, csName]);
+  //   res.json(result);
+  // } catch (err) {
+  //   console.log("Error fetching Schedule: ", err);
+  //   res.status(500).json({ error: "Error fetching Schedule" });
+  // }
+
+  db.query(sql, [semester, academicYear, csName], (err, data) => {
+    if (err) {
+      console.log("Error fetching Schedule: ", err);
+      res.status(500).json({ error: "Error fetching Schedule" });
+    } else {
+      res.json(data);
+    }
+  });
+});
+
+app.get("/uploadtofolder", (req, res) => {
+  const sql =
+    "SELECT `CSID`, `CSName`, `Role`, `CSImg`, `img_64` FROM `csuser`";
+  db.query(sql, (err, data) => {
+    if (err) {
+      return res.json(err);
+    } else {
+      return res.json(data);
+    }
+  });
+});
 
 app.listen(8081, () => {
-    console.log("listening");
-})
+  console.log("listening");
+});

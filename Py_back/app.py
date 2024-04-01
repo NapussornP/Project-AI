@@ -5,6 +5,7 @@ from deepface import DeepFace
 import threading
 from pathlib import Path
 import os
+import requests
 # import tensorflow as tf
 from datetime import datetime
 import base64
@@ -12,7 +13,7 @@ import mysql.connector
 import pyttsx3
 import random
 import concurrent.futures
-
+from flask import jsonify
 
 
 
@@ -204,6 +205,27 @@ def get_frames(video, saved_faces, db_path):
         frame = buffer.tobytes()
         yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
+
+# @app.route('/savetoDir')
+def create_image_folders_and_save_images():
+    api_endpoint = 'http://localhost:8081/uploadtofolder'
+
+    response = requests.get(api_endpoint)
+    image_data = response.json()
+
+    for entry in image_data:
+        print(entry['CSName'])
+
+    folder_root = "UserImage"
+
+    if not os.path.exists(folder_root):
+        os.makedirs(folder_root)
+        print("folder '{}' has been created".format(folder_root))
+    else:
+        print("folder '{}' already exist".format(folder_root))
+    
+    return "folder is creating"
+
 # Route to serve video feed
 @app.route('/video_feed')
 def video_feed():
@@ -211,7 +233,7 @@ def video_feed():
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
-from flask import jsonify
+
 
 @app.route('/HelloHowAreYou')
 def get_info():
@@ -262,4 +284,5 @@ def get_info():
         return jsonify({"error": error_message})
 
 if __name__ == '__main__':
+    # create_image_folders_and_save_images()
     app.run(host='0.0.0.0', debug=True)

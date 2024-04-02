@@ -11,3 +11,22 @@ Name: tensorflow
 Version: 2.16.1
 
 keras-3.0.5
+
+pip show opencv-python
+Name: opencv-python
+Version: 4.9.0.80
+Summary: Wrapper package for OpenCV python bindings.
+Home-page: https://github.com/opencv/opencv-python
+Author: 
+Author-email: 
+License: Apache 2.0
+Location: c:\users\user\onedrive - kmutnb.ac.th\desktop\ai\py_back\venv\lib\site-packages
+Requires: numpy, numpy, numpy
+Required-by: deepface, mtcnn, retina-face
+
+
+import concurrent.futures
+
+current_directory = Path(__file__).parent
+db_path = current_directory / 'UserImage'
+image_paths = glob.glob(str(db_path / '**/*.jpg'), recursive=True)

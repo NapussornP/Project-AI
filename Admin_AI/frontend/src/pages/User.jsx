@@ -1,14 +1,10 @@
 import React from "react";
 // import "./App.css";
-import Nav from "../Nav";
-import {
-  makeStyles,
-  CssBaseline,
-  ThemeProvider,
-} from "@material-ui/core";
-import { createTheme } from '@material-ui/core/styles'
-import CSUser from './../component/CSUser'
-
+// import Nav from "../Nav";
+import { makeStyles, CssBaseline, ThemeProvider } from "@material-ui/core";
+import { createTheme } from "@material-ui/core/styles";
+import CSUser from "./../component/CSUser";
+import Nav from "../test/component/Nav";
 // import Header from "../components/Header";
 // import PageHeader from "../components/PageHeader";
 
@@ -54,16 +50,14 @@ function App() {
 
   return (
     <section className="flex gap-6">
-        <Nav />
-        <ThemeProvider theme={theme}>
-      
+      <Nav />
+      <ThemeProvider theme={theme}>
         <div className={classes.appMain}>
-          <CSUser/>
+          <CSUser />
         </div>
         <CssBaseline />
-        </ThemeProvider>
+      </ThemeProvider>
     </section>
-    
   );
 }
 

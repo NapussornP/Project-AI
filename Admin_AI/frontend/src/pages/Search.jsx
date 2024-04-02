@@ -1,13 +1,8 @@
 import React from "react";
-import Nav from "../Nav";
-import {
-  makeStyles,
-  CssBaseline,
-  ThemeProvider,
-} from "@material-ui/core";
-import { createTheme } from '@material-ui/core/styles'
-import CSSearch from './../component/CSSearch'
-
+import Nav from "../test/component/Nav";
+import { makeStyles, CssBaseline, ThemeProvider } from "@material-ui/core";
+import { createTheme } from "@material-ui/core/styles";
+import CSSearch from "./../component/CSSearch";
 
 const theme = createTheme({
   palette: {
@@ -49,15 +44,14 @@ function App() {
 
   return (
     <section className="flex gap-6">
-        <Nav />
-        <ThemeProvider theme={theme}>
-            <div className={classes.appMain}>
-                <CSSearch/>
-            </div>
-            < CssBaseline />
-        </ThemeProvider>
+      <Nav />
+      <ThemeProvider theme={theme}>
+        <div className={classes.appMain}>
+          <CSSearch />
+        </div>
+        <CssBaseline />
+      </ThemeProvider>
     </section>
-    
   );
 }
 

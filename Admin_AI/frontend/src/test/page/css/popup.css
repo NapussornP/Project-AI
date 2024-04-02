@@ -1,0 +1,16 @@
+.popup-user {
+  background: rgba(49, 49, 49, 0.8);
+  display: grid;
+  justify-items: center;
+  align-items: center;
+}
+
+.userform {
+  width: 80vh;
+  height: 50vh;
+  background-color: white;
+}
+
+body.active-modal {
+  overflow-y: hidden;
+}

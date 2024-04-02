@@ -7,4 +7,8 @@ export default defineConfig({
   server: {
     port: 5041, // แก้ตรงนี้เป็นพอร์ตที่คุณต้องการ
   },
+  build: {
+    outDir: 'build'
+  }
+  
 })

@@ -1,13 +1,9 @@
 import React from "react";
 // import "./App.css";
-import Nav from "../Nav";
-import {
-  makeStyles,
-  CssBaseline,
-  ThemeProvider,
-} from "@material-ui/core";
-import { createTheme } from '@material-ui/core/styles'
-import ShowDashboard from './../component/ShowDashboard'
+import Nav from "../test/component/Nav";
+import { makeStyles, CssBaseline, ThemeProvider } from "@material-ui/core";
+import { createTheme } from "@material-ui/core/styles";
+import ShowDashboard from "./../component/ShowDashboard";
 
 const theme = createTheme({
   palette: {
@@ -42,7 +38,6 @@ const useStyles = makeStyles({
     paddingLeft: "320px",
     width: "100%",
   },
-  
 });
 
 function App() {
@@ -50,16 +45,14 @@ function App() {
 
   return (
     <section className="flex gap-6">
-        <Nav/>
-        <ThemeProvider theme={theme}>
-      
+      <Nav />
+      <ThemeProvider theme={theme}>
         <div className={classes.appMain}>
-          <ShowDashboard/>
+          <ShowDashboard />
         </div>
         <CssBaseline />
-        </ThemeProvider>
+      </ThemeProvider>
     </section>
-    
   );
 }
 

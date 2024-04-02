@@ -1,24 +1,22 @@
 .Cell-dayOfMonth {
-    display: none;
-  }
+  display: none;
+}
 .MuiPaper-root {
-    height: 400px;
-    width: 80%;
-    
-    
+  height: 400px;
+  width: 80%;
 }
 .container {
   display: flex;
-  align-items: center; 
-  flex-direction: column; 
+  align-items: center;
+  flex-direction: column;
   margin-bottom: 10px;
   margin-top: 5%;
 }
 
 .form-control.w-25 {
-  width: 25%!important; 
+  width: 25% !important;
 }
-.form-label{
+.form-label {
   font-size: 35px;
   font-weight: 600;
 }
@@ -26,14 +24,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
-
 }
 
-.form-label>span{
+.form-label > span {
   color: purple;
 }
 
-.detailSc{
+.detailSc {
   width: 75%;
   padding: 1%;
   margin-top: 1.5%;
@@ -41,11 +38,15 @@
   margin-left: 10%;
 }
 
-.detailSc span{
+.detailSc span {
   margin-left: 3%;
 }
-.detailSc .s{
+.detailSc .s {
   color: red;
   margin-left: 1%;
   font-weight: 500;
+}
+
+.Content-text.Content-dateAndTitle {
+  color: transparent;
 }

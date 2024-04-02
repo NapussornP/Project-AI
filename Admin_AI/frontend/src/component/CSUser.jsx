@@ -3,7 +3,7 @@ import Controls from "./controls/Controls";
 import { Search } from "@material-ui/icons";
 import useTable from "./UseTable";
 import Popup from "./Popup";
-import axios from 'axios';
+import axios from "axios";
 import {
   Paper,
   makeStyles,
@@ -13,23 +13,22 @@ import {
   Toolbar,
   InputAdornment,
 } from "@material-ui/core";
-import PageHeader from './UserPageHeader'
+import PageHeader from "./UserPageHeader";
 import PeopleOutlineTwoToneIcon from "@material-ui/icons/PeopleOutlineTwoTone";
 import AddIcon from "@material-ui/icons/Add";
-import UserForm from './UserForm'
-import Button from '@mui/material/Button';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Swal from 'sweetalert2';
-
+import UserForm from "./UserForm";
+import Button from "@mui/material/Button";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Swal from "sweetalert2";
 
 const useStyles = makeStyles((theme) => ({
   pageContent: {
     padding: theme.spacing(3),
-    height: '650px'
+    height: "650px",
   },
   searchInput: {
     width: "75%",
-    marginTop: '2px'
+    marginTop: "2px",
   },
   newButton: {
     position: "absolute",
@@ -38,11 +37,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const headCells = [
-    {id : 'CSID', label: ' '},
-    { id: 'CSName', label: 'Name' },
-    { id: 'Role', label: 'Role' },
-    { id: 'Image', label: 'Image' },
-    { id: '', label: 'Action'}
+  { id: "CSID", label: " " },
+  { id: "CSName", label: "Name" },
+  { id: "Role", label: "Role" },
+  { id: "Image", label: "Image" },
+  { id: "", label: "Action" },
 ];
 
 export default function Users() {
@@ -54,12 +53,16 @@ export default function Users() {
     },
   });
 
-  const { TblContainer, TblHead, TblPagination, recordsAfterPagingAndSorting } = useTable(records, headCells, filterFn);
+  const { TblContainer, TblHead, TblPagination, recordsAfterPagingAndSorting } =
+    useTable(records, headCells, filterFn);
   const [user, setUser] = useState([]);
   useEffect(() => {
-    axios.get('http://localhost:8081/User').then(response => {
-      setRecords(response.data);
-    }).catch(error => console.log(error));
+    axios
+      .get("http://localhost:8081/User")
+      .then((response) => {
+        setRecords(response.data);
+      })
+      .catch((error) => console.log(error));
   }, []);
 
   const handleSearch = (e) => {
@@ -67,48 +70,48 @@ export default function Users() {
     setFilterFn({
       fn: (items) => {
         if (target === "") return items;
-        else return items.filter(x => x.CSName.toLowerCase().includes(target));
-      }
+        else
+          return items.filter((x) => x.CSName.toLowerCase().includes(target));
+      },
     });
   };
 
   const handleDelete = async (userId) => {
     try {
-        const confirm = await Swal.fire({
-            title: 'Are you sure?',
-            text: 'You won\'t be able to revert this!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
-        });
+      const confirm = await Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+      });
 
-        if (confirm.isConfirmed) {
-            await axios.delete(`http://localhost:8081/deleteUser/${userId}`);
-            const response = await fetch('http://localhost:8081/User');
-            const newData = await response.json();
-            
-            const usersWithIds = newData.map((user, index) => ({ ...user, id: index + 1 }));
-            setUser(usersWithIds);
+      if (confirm.isConfirmed) {
+        await axios.delete(`http://localhost:8081/deleteUser/${userId}`);
+        const response = await fetch("http://localhost:8081/User");
+        const newData = await response.json();
 
-            Swal.fire(
-                'Deleted!',
-                'Your file has been deleted.',
-                'success'
-            );
+        const usersWithIds = newData.map((user, index) => ({
+          ...user,
+          id: index + 1,
+        }));
+        setUser(usersWithIds);
 
-            window.location.reload();
-        }
+        Swal.fire("Deleted!", "Your file has been deleted.", "success");
+
+        window.location.reload();
+      }
     } catch (error) {
-        console.error('Error deleting user:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Something went wrong!',
-        });
+      console.error("Error deleting user:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Something went wrong!",
+      });
     }
-};
+  };
 
   const [openPopup, setOpenPopup] = useState(false);
   const [recordForEdit, setRecordForEdit] = useState(null);
@@ -149,34 +152,41 @@ export default function Users() {
           <TblHead />
           <TableBody>
             {recordsAfterPagingAndSorting().map((item) => (
-                // console.log('Item:', item),
-                // console.log('../../../../img_test/',item.CSID),
-              <TableRow key={item.id}>
-                <TableCell>{' '}</TableCell>
+              // console.log('Item:', item),
+              // console.log('../../../../img_test/',item.CSID),
+              <TableRow key={item.CSID}>
+                <TableCell> </TableCell>
                 <TableCell>{item.CSName}</TableCell>
                 <TableCell>{item.Role}</TableCell>
                 <TableCell>
-                {/* <img
+                  {/* <img
                     src={`${item.CSImg}`}
                     alt="User Image"
                     style={{ width: '50px', height: '50px', borderRadius: '50%' }}
                   /> */}
+
                   <img
-                    src={`./../../../img_test/${item.CSID}.jpg`}
+                    // src={`./../../../img_test/${item.CSID}.jpg`
+                    src={`${item.img_64}`}
                     alt="User Image"
-                    style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+                    style={{
+                      width: "50px",
+                      height: "50px",
+                      borderRadius: "50%",
+                    }}
                   />
                 </TableCell>
-                <TableCell><Button
-                                variant="outlined"
-                                startIcon={<DeleteIcon />}
-                                color="error"
-                                style={{ color: 'red', borderColor: 'red' }} 
-                                onClick={() => handleDelete(item.CSID)}
-                            >
-                            Delete
-                        </Button></TableCell>
-                        
+                <TableCell>
+                  <Button
+                    variant="outlined"
+                    startIcon={<DeleteIcon />}
+                    color="error"
+                    style={{ color: "red", borderColor: "red" }}
+                    onClick={() => handleDelete(item.CSID)}
+                  >
+                    Delete
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -188,7 +198,7 @@ export default function Users() {
         openPopup={openPopup}
         setOpenPopup={setOpenPopup}
       >
-            <UserForm recordForEdit={recordForEdit}  />
+        <UserForm recordForEdit={recordForEdit} />
       </Popup>
     </>
   );

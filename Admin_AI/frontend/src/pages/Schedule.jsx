@@ -1,14 +1,9 @@
 import React from "react";
 // import "./App.css";
-import Nav from "../Nav";
-import {
-  makeStyles,
-  CssBaseline,
-  ThemeProvider,
-} from "@material-ui/core";
-import { createTheme } from '@material-ui/core/styles'
-import AddSchedule from './../component/AddSchedule'
-
+import Nav from "../test/component/Nav";
+import { makeStyles, CssBaseline, ThemeProvider } from "@material-ui/core";
+import { createTheme } from "@material-ui/core/styles";
+import AddSchedule from "./../component/AddSchedule";
 
 const theme = createTheme({
   palette: {
@@ -50,16 +45,14 @@ function App() {
 
   return (
     <section className="flex gap-6">
-        <Nav />
-        <ThemeProvider theme={theme}>
-      
+      <Nav />
+      <ThemeProvider theme={theme}>
         <div className={classes.appMain}>
-          <AddSchedule/>
+          <AddSchedule />
         </div>
         <CssBaseline />
-        </ThemeProvider>
+      </ThemeProvider>
     </section>
-    
   );
 }
 

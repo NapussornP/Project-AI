@@ -197,7 +197,7 @@ def face_detection(img_face, x, y, w, h, img_full_flip, saved_faces, db_path):
                 cs_id = 0
             
            
-        # Insert data into database
+
         # insert_db(datetime_detect, gender, age, cs_id, emotion, img_face, img_full_flip)
 
         face_id = f"{x}-{y}-{w}-{h}"

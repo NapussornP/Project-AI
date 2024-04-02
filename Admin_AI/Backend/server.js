@@ -123,6 +123,14 @@ app.delete("/deleteUser/:userId", (req, res) => {
     } else {
       console.log("User deleted successfully");
       res.status(200).json({ message: "User deleted successfully" });
+      axios
+        .delete(`http://127.0.0.1:5001/deletefromDir/${userId}`)
+        .then(() => {
+          console.log("Python API called successfully (Delete)");
+        })
+        .catch((error) => {
+          console.error("Error calling Python API(Delete):", error);
+        });
     }
   });
 });

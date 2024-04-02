@@ -47,6 +47,8 @@ import os
 import requests
 from flask_cors import CORS
 import base64
+import glob
+from pathlib import Path
 
 app = Flask(__name__)
 CORS(app)
@@ -87,7 +89,33 @@ def save_image_to_folder(cs_name, img_base64, img_id):
         f.write(binary_data)
 
 
+@app.route('/deletefromDir/<user_id>', methods=['DELETE'])
+def delete_image(user_id):
+    current_directory = Path(__file__).parent
+    db_path = current_directory / 'UserImage' 
+    image_paths = glob.glob(str(db_path / '**/*.jpg'), recursive=True)
 
+    deleted = False
+    for image_path in image_paths:
+        filename = os.path.basename(image_path)
+        if filename.startswith(user_id):
+            os.remove(image_path)
+            print(f"Deleted image: {image_path}")
+            new_file_path = image_path.replace(filename, "")
+            print( new_file_path)
+            deleted = True
+
+    
+    if deleted:
+        if(len(os.listdir(new_file_path))) == 0:
+            os.rmdir(new_file_path)
+            return jsonify({"message": f"Folder '{db_path}' deleted successfully as it's empty"})
+        else:
+            return jsonify({"message": f"Images for user {user_id} deleted successfully"})
+    else:
+        return jsonify({"message": f"No images found for user {user_id}"}), 404
+  
+    return "Image Delete successfully"
 
 
 

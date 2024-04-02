@@ -862,13 +862,27 @@ app.delete("/TeachingSchedule/:id", (req, res) => {
   });
 });
 
+app.put("/TeachingSchedule/:id", (req, res) => {
+  const id = req.params.id;
+  const { CID, CName, Day, StartTime, EndTime } = req.body;
+  const sql = `UPDATE schedule SET CID = ?, CName = ?, Day = ?, StartTime = ?, EndTime = ? WHERE ID = ?`;
+
+  db.query(sql, [CID, CName, Day, StartTime, EndTime, id], (err, data) => {
+    if (err) {
+      console.log("Error update Schedule: ", err);
+      re.status(500).json({ error: "error update schedule" });
+    } else {
+      res.json(data);
+    }
+  });
+});
 app.get("/TeachingSchedule", (req, res) => {
   const semester = req.query.semester;
   const academicYear = req.query.academicYear;
   const csName = req.query.csName;
 
-  console.log("1");
-  console.log(semester + " " + academicYear + " " + csName);
+  // console.log("1");
+  // console.log(semester + " " + academicYear + " " + csName);
 
   const sql = `SELECT ID, CID, CName, Day, StartTime, EndTime FROM schedule s
               JOIN csuser c on c.CSID = s.CSID

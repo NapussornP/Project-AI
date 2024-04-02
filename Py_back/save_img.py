@@ -92,5 +92,5 @@ def save_image_to_folder(cs_name, img_base64, img_id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8081)
+    app.run(debug=True, port=5001)
     # create_image_folders_and_save_images()

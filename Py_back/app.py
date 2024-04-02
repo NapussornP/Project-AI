@@ -155,14 +155,12 @@ def face_detection(img_face, x, y, w, h, img_full_flip, saved_faces, db_path):
         def analyze_gender():
             return DeepFace.analyze(img_face, actions='gender', enforce_detection=False)
 
-        def find_face(image_path):
-            print('1')
-            print("Is db_path exists2:", os.path.exists(db_path))
-            result = DeepFace.find(img_face, db_path=image_path, enforce_detection=False)
-            print(result)
-            return result
-        def face_verify(image_path):
-            return DeepFace.verify(img_face, img2_path=image_path, enforce_detection=False)
+
+        def face_verify(img_face_resized, image_path):
+            # return DeepFace.verify(img_face, img2_path=image_path, enforce_detection=False)
+            # img_face_1 = cv2.imread(img_face)
+            img_face_resized = resize_image(img_face)
+            return DeepFace.verify(img_face_resized, img2_path=image_path, enforce_detection=False)
 
         # Analyze emotion, age, and gender concurrently
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -186,40 +184,19 @@ def face_detection(img_face, x, y, w, h, img_full_flip, saved_faces, db_path):
         if message:
             threading.Thread(target=speak_message, args=(message,)).start()
 
+        img_face_resized = resize_image(img_face)
         image_paths = glob.glob(str(db_path / '**/*.jpg'), recursive=True)
         for image_path in image_paths:
-            print('path img find: ', image_path)
-            result = face_verify(image_path)
+            # print('path img find: ', image_path)
+            result = face_verify(img_face_resized, image_path)
             if result['verified'] == True:
                 print('Match User')
                 break
             else:
                 print('not match any')
+                cs_id = 0
             
-            # result = DeepFace.find(img_face, db_path=image_path, enforce_detection=False)
-            # if result is not None and not result.empty:
-            #     # พบใบหน้าในภาพ
-            #     print('Match found!')
-            #     break
-            #     # ดำเนินการเพิ่มเติมตามต้องการที่นี่
-            # else:
-            #     # ไม่พบใบหน้าในภาพ
-            #     print('No match found for', image_path)
-            # DeepFace.find(img_face, db_path=image_path, enforce_detection=False)            
-            # print(face_recognition)
-            # if face_recognition and not face_recognition[0].empty:
-            #     print('Match')
-            #     first_result = face_recognition[0]
-            #     similar_face_path = first_result.iloc[0]['identity']
-            #     similar_face_path = os.path.normpath(similar_face_path)
-            #     print('Path face: ', similar_face_path)
-            #     # cs_id, _ = os.path.splitext(os.path.basename(similar_face_path))
-            #     # print('name is: ', cs_id)
-            #     break
-            # else:
-            #     print('Not match any')
-            #     cs_id = 0
-
+           
         # Insert data into database
         # insert_db(datetime_detect, gender, age, cs_id, emotion, img_face, img_full_flip)
 

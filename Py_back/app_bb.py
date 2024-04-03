@@ -15,7 +15,7 @@ import concurrent.futures
 from flask import jsonify
 import requests
 import glob
-
+import time
 
 app = Flask(__name__)
 CORS(app)
@@ -163,15 +163,36 @@ def face_detection(img_face, x, y, w, h, img_full_flip, saved_faces, db_path):
             return DeepFace.verify(img_face_resized, img2_path=image_path, enforce_detection=False)
 
         # Analyze emotion, age, and gender concurrently
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            emo_future = executor.submit(analyze_emotion)
-            age_future = executor.submit(analyze_age)
-            gender_future = executor.submit(analyze_gender)
+        start_time = time.time()  # เวลาเริ่มต้นที่เริ่มนับ
 
-            # Get results from futures
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            emo_start_time = time.time()  # เวลาที่เริ่มต้นการส่งภารกิจ analyze_emotion
+            emo_future = executor.submit(analyze_emotion)
+            emo_end_time = time.time()  # เวลาที่ภารกิจ analyze_emotion เสร็จสิ้น
+
+            age_start_time = time.time()  # เวลาที่เริ่มต้นการส่งภารกิจ analyze_age
+            age_future = executor.submit(analyze_age)
+            age_end_time = time.time()  # เวลาที่ภารกิจ analyze_age เสร็จสิ้น
+
+            gender_start_time = time.time()  # เวลาที่เริ่มต้นการส่งภารกิจ analyze_gender
+            gender_future = executor.submit(analyze_gender)
+            gender_end_time = time.time()  # เวลาที่ภารกิจ analyze_gender เสร็จสิ้น
+
+            # รอภารกิจเสร็จสิ้นและดึงผลลัพธ์
             detec_emo = emo_future.result()
             detec_age = age_future.result()
             detec_gender = gender_future.result()
+
+        # คำนวณเวลาทั้งหมดที่ใช้ในการส่งภารกิจและรอผลลัพธ์
+        total_time = time.time() - start_time
+
+        print("Emotion task started at:", emo_start_time)
+        print("Emotion task finished at:", emo_end_time)
+        print("Age task started at:", age_start_time)
+        print("Age task finished at:", age_end_time)
+        print("Gender task started at:", gender_start_time)
+        print("Gender task finished at:", gender_end_time)
+        print("Total time:", total_time)
 
         # Extract emotion, age, and gender from the analysis
         emotion = detec_emo[0]['dominant_emotion']

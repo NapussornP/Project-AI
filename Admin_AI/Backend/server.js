@@ -916,7 +916,7 @@ app.get("/TeachingSchedule", (req, res) => {
   });
 });
 
-// -------------kiosk-----------------------
+// -------------kiosk bb-----------------------
 app.get("/uploadtofolder", (req, res) => {
   // const sql =
   //   "SELECT CSID, CSName, Role, CSImg, img_64 FROM csuser";
@@ -983,6 +983,43 @@ app.get("/texttospeech", (req, res) => {
     }
   });
 });
+
+// ------------------------kiosk NT----------------
+app.get("/emotionid", (req, res) => {
+  const sql = "SELECT * FROM `emotion`";
+  db.query(sql, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+});
+
+app.get("/textid", (req, res) => {
+  const sql = "SELECT * FROM `text`";
+  db.query(sql, (err, data) => {
+    if (err) return res.json(err);
+    return res.json(data);
+  });
+});
+app.post("/saveKiosk", (req, res) => {
+  const { Date_time, CSGender, CSAge, CSID, EmoID, S_Pic, L_Pic } = req.body;
+  const sql =
+    "INSERT INTO transaction ( Date_time, CSGender, CSAge, CSID, EmoID, S_Pic, L_Pic) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+  db.query(
+    sql,
+    [Date_time, CSGender, CSAge, CSID, EmoID, S_Pic, L_Pic],
+    (error, results) => {
+      if (error) {
+        console.error("Error inserting transaction:", error);
+        res.status(500).json({ message: "Failed" });
+      } else {
+        console.log("Added successfully");
+        res.status(200).json({ message: "Transaction successfully" });
+      }
+    }
+  );
+});
+
 app.listen(8081, () => {
   console.log("listening");
 });

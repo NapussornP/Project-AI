@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Prediction</title>
+    <style>
+        body {
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow: hidden;
+            background-color: #470a68;
+        }
+
+        #video-container {
+            width: 500px;
+            height: auto;
+            overflow: hidden;
+        }
+
+        #video-feed {
+            width: 500px;
+            height: auto;
+            object-fit: cover;
+        }
+
+        .stack-cards {
+            list-style-type: none;
+            padding: 0;
+            margin: 0.7rem
+        }
+
+
+        .frame {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stack-cards__item {
+            width: 500px;
+            margin-bottom: 0.7rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+        }
+
+        .center {
+            margin: 0;
+            font-size: 20px;
+            font-family: "Lucida Console", "Courier New", monospace;
+            line-height: 30px;
+        }
+        
+        .right {
+            flex-shrink: 0;
+            text-align: right;
+            font-size: 70px;
+            margin: 0;
+        }
+        
+    
+    </style>
+</head>
+<body>
+    <div class="frame">
+        <div id="video-container">
+            <img id="video-feed" src="{{ url_for('video_feed') }}" alt="Video Feed">
+        </div>
+    </div>
+    
+    <ul class="stack-cards" id="stackCards"></ul>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js"></script>
+    <script>
+        var socket = io.connect('http://127.0.0.1:5000/');
+
+        socket.on('data', function(data) {
+            const timestamp = new Date().toLocaleString('en-US', {
+                weekday: 'short',
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+        
+            const emotion = data.emotion;
+            const ageRange = data.age_range;
+            const gender = data.gender;
+            const faceImage = data.faceimg;
+            const name = data.name;  // Get the name from the data
+        
+            // Create a new card item
+            var newCard = document.createElement('li');
+            newCard.classList.add('stack-cards__item');
+        
+            // Set the HTML content of the new card
+            newCard.innerHTML = `
+                <img src="${faceImage}" alt="Face Image" style=" max-width: 100px; max-height: 100px; border-radius: 3px;">
+                <p class="center">
+                    ${timestamp}<br>
+                    ${name}<br>
+                    Age: ${ageRange}
+                    Gender: ${gender}<br>
+                </p>
+                <span class="right">
+                    ${getEmotionEmoji(emotion)}
+                </span>
+            `;
+        
+            // Insert the new card item at the top of the stack
+            var stackCards = document.getElementById('stackCards');
+            stackCards.insertBefore(newCard, stackCards.firstChild);
+
+            function getEmotionEmoji(emotion) {
+                switch (emotion) {
+                    case 'happy':
+                        return '😊';
+                    case 'sad':
+                        return '😢';
+                    case 'angry':
+                        return '😠';
+                    case 'surprise':
+                        return '😮';
+                    case 'neutral':
+                        return '😐';
+                    case 'fear':
+                        return '😱';
+                    default:
+                        return emotion;
+                }
+            }
+        });
+        
+
+    </script>
+</body>
+</html>
+ 

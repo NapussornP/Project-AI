@@ -124,7 +124,7 @@ app.delete("/deleteUser/:userId", (req, res) => {
       console.log("User deleted successfully");
       res.status(200).json({ message: "User deleted successfully" });
       axios
-        .delete(`http://127.0.0.1:5001/deletefromDir/${userId}`)
+        .delete(`http://127.0.0.1:5000/deletefromDir/${userId}`)
         .then(() => {
           console.log("Python API called successfully (Delete)");
         })
@@ -149,7 +149,7 @@ app.post("/AddUser", (req, res) => {
       res.status(200).json({ message: "User added successfully" });
 
       axios
-        .get("http://127.0.0.1:5001/savetoDir")
+        .get("http://127.0.0.1:5000/savetoDir")
         .then(() => {
           console.log("Python API called successfully");
         })

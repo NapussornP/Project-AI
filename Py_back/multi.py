@@ -207,8 +207,8 @@ def face_detection(img_face, x, y, w, h, img_full_flip, saved_faces, db_path):
         print("Error is :", e)
 # Function to generate video frames
 def get_frames(video, saved_faces, db_path):
-    trackers = []
-    saved_faces = set() 
+    multi_tracker = cv2.legacy.MultiTracker_create()  # Create MultiTracker object
+
     while True:
         success, img = video.read()
         if not success:
@@ -217,30 +217,45 @@ def get_frames(video, saved_faces, db_path):
         img_resized = cv2.resize(img, (650, 450))
         img_full_flip = cv2.flip(img_resized, 1)
 
-        updated_trackers = []
-        for tracker in trackers:
-            success, _ = tracker.update(img_full_flip)
-            if success:
-                updated_trackers.append(tracker)
-        trackers = updated_trackers
-
         gray_scale = cv2.cvtColor(img_full_flip, cv2.COLOR_BGR2GRAY)
         faces = face_cascade.detectMultiScale(gray_scale, 1.1, 4)
 
         for (x, y, w, h) in faces:
-            cv2.rectangle(img_full_flip, (x, y), (x+w, y+h), (0, 255, 0), 2)
+            # cv2.rectangle(img_full_flip, (x, y), (x+w, y+h), (0, 255, 0), 2)
+            # x, y, w, h = [int(v) for v in box]
+            img_face = img_full_flip[y:y+h, x:x+w]
 
-            if not trackers:
-                img_face = img_full_flip[y:y+h, x:x+w]
-                threading.Thread(target=face_detection, args=(img_face, x, y, w, h, img_full_flip, saved_faces, db_path)).start()
-                tracker = cv2.TrackerKCF_create()
-                tracker.init(img_full_flip, (x, y, w, h))
-                trackers.append(tracker)
+        if multi_tracker.empty():  # Check if multi_tracker has no trackers
+            for (x, y, w, h) in faces:
+                cv2.rectangle(img_full_flip, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                bounding_box = (x, y, w, h)
+                multi_tracker.add(cv2.legacy.TrackerKCF_create(), img_full_flip, bounding_box)
+            threading.Thread(target=face_detection, args=(img_face, x, y, w, h, img_full_flip, saved_faces, db_path)).start()
+
+        else:
+            for (x, y, w, h) in faces:
+                # Check if the face is already being tracked
+                tracked = False
+                for tracker in multi_tracker.getObjects():
+                    if tuple(tracker) == bounding_box:
+                        tracked = True
+                        break
+                # If the face is not tracked, start a new thread for face detection
+                if not tracked:
+                    cv2.rectangle(img_full_flip, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                    threading.Thread(target=face_detection, args=(img_face, x, y, w, h, img_full_flip, saved_faces, db_path)).start()
+                    bounding_box = (x, y, w, h)
+                    multi_tracker.add(cv2.legacy.TrackerKCF_create(), img_full_flip, bounding_box)
+
+        # Update MultiTracker with current frame
+        success, boxes = multi_tracker.update(img_full_flip)
+
+       
+            # threading.Thread(target=face_detection, args=(img_face, x, y, w, h, img_full_flip, saved_faces, db_path)).start()
 
         ret, buffer = cv2.imencode('.jpg', img_full_flip)
         frame = buffer.tobytes()
         yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
 
 # @app.route('/savetoDir')
 def create_image_folders_and_save_images():

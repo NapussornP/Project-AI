@@ -5,26 +5,29 @@ import cv2
 import os
 
 
+multi_tracker = cv2.legacy.MultiTracker_create()  # Create MultiTracker object
+
+
 current_directory = Path(__file__).parent  
 
 db_path = current_directory / 'UserImage'
 
 # image_files = glob.glob(str(db_path / '**/*.jpg'), recursive=True)
-image_files = glob.glob(str(db_path / '*'), recursive=True)
-print(image_files)
+# image_files = glob.glob(str(db_path / '*'), recursive=True)
+# print(image_files)
 
-file_path = "C:\\Users\\User\\OneDrive - kmutnb.ac.th\\Desktop\\AI\\Py_back\\UserImage\\Ami Kim\\13.jpg"
-filename = os.path.basename(file_path)
-new_file_path = file_path.replace(filename, "")
-print(new_file_path) 
+# file_path = "C:\\Users\\User\\OneDrive - kmutnb.ac.th\\Desktop\\AI\\Py_back\\UserImage\\Ami Kim\\13.jpg"
+# filename = os.path.basename(file_path)
+# new_file_path = file_path.replace(filename, "")
+# print(new_file_path) 
 
-if os.path.exists(new_file_path):
-    print("exits")
-else:
-    print("not exits")
+# if os.path.exists(new_file_path):
+#     print("exits")
+# else:
+#     print("not exits")
 
-p = ""
-print(len(os.listdir(new_file_path)))
+# p = ""
+# print(len(os.listdir(new_file_path)))
 # for image_file in image_files:
 #     print(image_file)
 #     img_path = r"C:\Users\User\OneDrive - kmutnb.ac.th\Desktop\AI\Py_back\UserImage\Taksaporn Yarnsangworn\11.jpg"

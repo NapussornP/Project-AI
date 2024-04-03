@@ -16,6 +16,7 @@ import { ViewState } from "@devexpress/dx-react-scheduler";
 import { IconButton } from "@mui/material";
 import { Delete } from "@mui/icons-material";
 import EditIcon from "@mui/icons-material/Edit";
+import Swal from "sweetalert2";
 import "./../css/Schedule.css";
 
 function TeacherScedule() {
@@ -44,8 +45,8 @@ function TeacherScedule() {
     setEndTime(data.endDate.split("T")[1]);
   };
 
-  console.log("st:", startTime);
-  console.log("et:", endTime);
+  // console.log("st:", startTime);
+  // console.log("et:", endTime);
 
   const handleClosePopup = () => {
     setIsDialogOpen(false);
@@ -120,7 +121,7 @@ function TeacherScedule() {
     setAcademinYear(e.target.value);
   };
 
-  const handleDelete = (data) => {
+  const handleDelete = async (data) => {
     // console.log(
     //   `DELETING!!!! ${data.ID} ${data.title} start:${
     //     data.startDate.split("T")[1]
@@ -129,17 +130,34 @@ function TeacherScedule() {
     //   } Tname:${showName} sem:${semester} year:${academicYear}`
     // );
 
-    axios
-      .delete(`http://localhost:8081/TeachingSchedule/${data.ID}`)
-      .then((response) => {
-        console.log("Delete Success: ");
-        setTSchedule((prevSchedule) =>
-          prevSchedule.filter((item) => item.ID !== data.ID)
-        );
-      })
-      .catch((error) => {
-        console.log("Error Deleting: ", error);
+    try {
+      const confirm = await Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
       });
+      if (confirm.isConfirmed) {
+        axios
+          .delete(`http://localhost:8081/TeachingSchedule/${data.ID}`)
+          .then((response) => {
+            console.log("Delete Success: ");
+            setTSchedule((prevSchedule) =>
+              prevSchedule.filter((item) => item.ID !== data.ID)
+            );
+          });
+      }
+    } catch (error) {
+      console.error("Error deleting schedule:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Something went wrong!",
+      });
+    }
   };
 
   const handleEdit = () => {
@@ -162,7 +180,7 @@ function TeacherScedule() {
       });
   };
 
-  console.log(subject);
+  // console.log(subject);
   return (
     <div>
       {isDialogOpen && (
@@ -172,7 +190,7 @@ function TeacherScedule() {
               {/* <h3>input form</h3> */}
               <form className="flex flex-col justify-center">
                 <form method="dialog">
-                  <div className="w-[100% flex justify-end mt-[-8%]">
+                  <div className="w-[100%] flex justify-end mt-[-8%] ml-[8%] ">
                     <button
                       className="btn btn-sm btn-circle btn-ghost absolute"
                       onClick={handleClosePopup}

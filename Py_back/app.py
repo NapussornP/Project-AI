@@ -32,29 +32,6 @@ url = 'http://localhost:8081/User'
 response = requests.get(url)
 csids = response.json()
 
-# ลบไฟล์ที่ไม่ตรงกับ CSID จาก URL
-# for root, dirs, files in os.walk('UserImage'):
-#     for file in files:
-#         if file.endswith(".jpg"):
-#             file_csid = int(file.split('.')[0])
-#             print("file_csid:", file_csid)
-#             csid_values = [int(csid['CSID']) for csid in csids]
-#             print("csid_values:", csid_values)
-#             if file_csid not in csid_values:
-#                 os.remove(os.path.join(root, file))
-
-# # เก็บไฟล์ที่ตรงกับ CSID จาก URL
-# for csid in csids:
-#     csname_folder = os.path.join('UserImage', csid['CSName'])
-#     os.makedirs(csname_folder, exist_ok=True)
-    
-#     image_path = os.path.join(csname_folder, f"{csid['CSID']}.jpg")
-#     if not os.path.exists(image_path):
-#         image_url = f"http://localhost:8081/UserImage/{csid['CSName']}/{csid['CSID']}.jpg"
-#         image_data = requests.get(image_url).content
-#         with open(image_path, 'wb') as f:
-#             f.write(image_data)
-
 # สร้าง Stream video ที่แสดงบนตู้
 def gen_frames():
     while True:
@@ -172,19 +149,31 @@ def camera_stream():
             cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 255, 255), 1)
 
 # ทำนาย อารมณ์ อายุ เพศ
+def analyze_emotion(face):
+    result = DeepFace.analyze(face, actions=['emotion'], enforce_detection=False)[0]['dominant_emotion']
+    return result
+
+def analyze_age(face):
+    result = DeepFace.analyze(face, actions=['age'], enforce_detection=False)[0]['age']
+    return result
+
+def analyze_gender(face):
+    result = DeepFace.analyze(face, actions=['gender'], enforce_detection=False)[0]['dominant_gender']
+    return result
+
 def analyze_face(face):
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        emotion_future = executor.submit(DeepFace.analyze, face, actions=['emotion'], enforce_detection=False)
-        age_future = executor.submit(DeepFace.analyze, face, actions=['age'], enforce_detection=False)
-        gender_future = executor.submit(DeepFace.analyze, face, actions=['gender'], enforce_detection=False)
+        emotion_future = executor.submit(analyze_emotion, face)
+        age_future = executor.submit(analyze_age, face)
+        gender_future = executor.submit(analyze_gender, face)
   
         concurrent.futures.wait([emotion_future, age_future, gender_future])
 
-        emotion_result = emotion_future.result()[0]['dominant_emotion']
-        age_result = age_future.result()[0]['age']
-        gender_result = gender_future.result()[0]['dominant_gender']
-        
-    return emotion_result, age_result, gender_result
+        emotion_result = emotion_future.result()
+        age_result = age_future.result()
+        gender_result = gender_future.result()
+
+        return emotion_result, age_result, gender_result
 
 # สุ่มข้อความสำหรับพูดส่งเสียง
 TH_voice_id = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_THAI"
@@ -248,35 +237,6 @@ def store_data_to_mysql(most_similar_id, emotions, age, gender, face_encoded, fr
     else:
         print("Failed to store data to API")
 
-# @app.route('/savetoDir')
-# def create_image_folders_and_save_images():
-#     api_endpoint = 'http://localhost:8081/uploadtofolder'
-
-#     response = requests.get(api_endpoint)
-#     image_data = response.json()
-
-#     folder_root = "UserImage"
-
-#     if not os.path.exists(folder_root):
-#         os.makedirs(folder_root)
-#         print("Folder '{}' has been created".format(folder_root))
-
-#     for item in image_data:
-#         CSName = item["CSName"]
-#         img_64 = item["img_64"]
-
-#         CSName_path = os.path.join(folder_root, CSName)
-#         if not os.path.exists(CSName_path):
-#             os.makedirs(CSName_path)
-
-#         img_filename = f"{item['CSID']}.jpg"
-
-#         with open(os.path.join(CSName_path, img_filename), "wb") as f:
-#             f.write(base64.b64decode(img_64.split(",")[1]))
-
-#     return "Images saved successfully"
-        
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -337,7 +297,6 @@ def delete_image(user_id):
             print( new_file_path)
             deleted = True
 
-    
     if deleted:
         if(len(os.listdir(new_file_path))) == 0:
             os.rmdir(new_file_path)
@@ -346,9 +305,6 @@ def delete_image(user_id):
             return jsonify({"message": f"Images for user {user_id} deleted successfully"})
     else:
         return jsonify({"message": f"No images found for user {user_id}"}), 404
-  
-    return "Image Delete successfully"
-
 
 if __name__ == '__main__':
     thread = threading.Thread(target=camera_stream)

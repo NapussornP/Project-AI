@@ -9,45 +9,45 @@ const axios = require("axios");
 const { error } = require("console");
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: "500mb" }));
 app.use(cors());
 
 // app.use(bodyParser.json({ limit: "50mb" }));
 // app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
-const storage = multer.memoryStorage();
+// const storage = multer.memoryStorage();
 
-const upload = multer({ storage: storage });
+// const upload = multer({ storage: storage });
 
-app.post("/upload", upload.single("image"), function (req, res, next) {
-  const file = req.file;
+// app.post("/upload", upload.single("image"), function (req, res, next) {
+//   const file = req.file;
 
-  const nextCSIDQuery =
-    "SELECT CSID + 1 AS NextCSID FROM CSUser ORDER BY CSID DESC LIMIT 1";
+//   const nextCSIDQuery =
+//     "SELECT CSID + 1 AS NextCSID FROM CSUser ORDER BY CSID DESC LIMIT 1";
 
-  db.query(nextCSIDQuery, (err, results) => {
-    if (err) {
-      console.error("Error getting the next CSID:", err);
-      res
-        .status(500)
-        .json({ error: "Error getting the next CSID from the database" });
-    } else {
-      const nextCSID = results[0] ? results[0].NextCSID : 1;
-      console.log("Query results:", results);
-      //   const nextCSID = results[0].NextCSID ;
+//   db.query(nextCSIDQuery, (err, results) => {
+//     if (err) {
+//       console.error("Error getting the next CSID:", err);
+//       res
+//         .status(500)
+//         .json({ error: "Error getting the next CSID from the database" });
+//     } else {
+//       const nextCSID = results[0] ? results[0].NextCSID : 1;
+//       console.log("Query results:", results);
+//       //   const nextCSID = results[0].NextCSID ;
 
-      const filename = nextCSID + path.extname(file.originalname);
+//       const filename = nextCSID + path.extname(file.originalname);
 
-      // Save
-      const destination = path.join("../frontend/img_test/", filename);
-      require("fs").writeFileSync(destination, file.buffer);
+//       // Save
+//       const destination = path.join("../frontend/img_test/", filename);
+//       require("fs").writeFileSync(destination, file.buffer);
 
-      console.log(destination);
-      console.log("File saved successfully:", filename);
-      res.send(destination);
-    }
-  });
-});
+//       console.log(destination);
+//       console.log("File saved successfully:", filename);
+//       res.send(destination);
+//     }
+//   });
+// });
 
 var host = "localhost";
 if (process.env.NODE_ENV == "production") {

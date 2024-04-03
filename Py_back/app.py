@@ -100,7 +100,7 @@ def camera_stream():
                     scale_factor = max_size / width
                 face_resized = cv2.resize(face, (int(width * scale_factor), int(height * scale_factor)))
                 # solve to payload too large
-                frame_resize = cv2.resize(frame, (int(width * scale_factor), int(height * scale_factor))) 
+                # frame_resize = cv2.resize(frame, (int(width * scale_factor), int(height * scale_factor))) 
             else:
                 face_resized = face
 
@@ -109,7 +109,7 @@ def camera_stream():
             face_encoded = f"data:image/jpeg;base64,{face_encoded}"
 
             # Encode frame image to base64
-            frame_encoded = base64.b64encode(cv2.imencode('.jpg', frame_resize)[1]).decode('utf-8')
+            frame_encoded = base64.b64encode(cv2.imencode('.jpg', frame)[1]).decode('utf-8')
             frame_encoded = f"data:image/jpeg;base64,{frame_encoded}"
 
             # ใช้ DeepFace เพื่อสร้าง embedding จากใบหน้าที่ถูก resize แล้ว

@@ -4,3 +4,4 @@ img_test/
 AdminClone/
 Admin_AI\frontend\node_modules/
 UserImage/
+.env/

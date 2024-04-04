@@ -58,7 +58,7 @@ export default function Users() {
   const [user, setUser] = useState([]);
   useEffect(() => {
     axios
-      .get("http://localhost:8081/User")
+      .get(import.meta.env.VITE_API + "/User")
       .then((response) => {
         setRecords(response.data);
       })
@@ -89,8 +89,8 @@ export default function Users() {
       });
 
       if (confirm.isConfirmed) {
-        await axios.delete(`http://localhost:8081/deleteUser/${userId}`);
-        const response = await fetch("http://localhost:8081/User");
+        await axios.delete(import.meta.env.VITE_API + `/deleteUser/${userId}`);
+        const response = await fetch(import.meta.env.VITE_API + "/User");
         const newData = await response.json();
 
         const usersWithIds = newData.map((user, index) => ({

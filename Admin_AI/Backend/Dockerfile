@@ -1,11 +1,12 @@
-FROM node:18.15.0
-ENV NODE_EVN=production
+FROM node:18-alpine
+# ENV NODE_EVN=production
 
-WORKDIR /admin/app
+WORKDIR /admin/server
 
-COPY ["package.json", "package-lock.json*", "./"]
+# COPY ["package.json", "package-lock.json*", "./"]
+COPY package*.json ./ 
 
-RUN npm install --production
+RUN npm install
 
 COPY . .
 

@@ -4,9 +4,15 @@ services:
     image: mysql:latest
     container_name: mysql-server
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: 1234
+      # MYSQL_DATABASE: 'ai'
+      # MYSQL_USER: 'user'
+      # MYSQL_PASSWORD: 'password'
+    ports:
+      - "3306:3306"
+   
     networks:
       - my_network
 
@@ -20,12 +26,30 @@ services:
       - "8080:80"
     environment:
       PMA_HOST: db
+      # PM_USER: user
+      # PM_PASSWORD: password
       MYSQL_ROOT_PASSWORD: 1234
+    networks:
+      - my_network
+
+
+  admin_server:
+    build: ./Admin_AI/Backend/
+    ports:
+      - "8081:8081"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db 
+      DB_USER: user
+      DB_PASSWORD: 1234
+      DB_DATABASE: ai
     networks:
       - my_network
 
 networks: 
   my_network:
+    driver: bridge
 
 volumes: 
-  mysql_data:
+  mysql-data:

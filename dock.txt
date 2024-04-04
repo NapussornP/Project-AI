@@ -1,0 +1,72 @@
+version: "3.8"
+services:
+  db:
+    image: mysql:latest
+    container_name: mysql-server
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      # MYSQL_DATABASE: ai
+      # MYSQL_USER: root
+      # MYSQL_PASSWORD: 1234
+    ports:
+      - "3306:3306"
+    # command: --default-aythentication-plugin=mysql_native_password
+    networks:
+      - mynetwork
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    depends_on:
+      - db
+    container_name: phpmyadmin-server
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      # PMA_USER: root
+      MYSQL_ROOT_PASSWORD: 1234
+    networks:
+      - mynetwork
+
+
+  # back-nodejs
+  admin_server:
+    build: ./Admin_AI/Backend/
+    ports:
+      - "8081:8081"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db 
+      # DB_USER: root
+      # DB_PASSWORD: 1234
+      # DB_DATABASE: ai
+    networks:
+      - mynetwork
+
+  # admin_web:
+  #   build: ./Admin_AI/frontend/
+  #   ports:
+  #     - "5041:5041"
+  #   environment:
+  #     - VITE_API=http://localhost:8081
+  #   networks:
+  #     - mynetwork
+
+networks: 
+  mynetwork:
+    driver: bridge
+
+volumes: 
+  mysql_data:
+
+
+# port "host:docker"
+
+
+
+>docker run --name mysql-server  -v c:/mysql-data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=1234 -d msql

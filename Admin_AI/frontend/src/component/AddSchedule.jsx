@@ -114,7 +114,7 @@ export default function Users() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:8081/insertSchedule", {
+      await axios.post(import.meta.env.VITE_API + "/insertSchedule", {
         data,
         courseDetails,
       });

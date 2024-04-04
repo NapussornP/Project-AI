@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require("express");
 const mysql = require("mysql");
 const cors = require("cors");
@@ -49,17 +50,25 @@ app.use(cors());
 //   });
 // });
 
-var host = "localhost";
-if (process.env.NODE_ENV == "production") {
-  host = "mysql-server";
-}
+// var host = "localhost";
+// if (process.env.NODE_ENV == "production") {
+//   host = "mysql-server";
+// }
+
+// const db = mysql.createConnection({
+//   host: "localhost",
+//   user: "root",
+//   password: "",
+//   database: "ai",
+// });
 
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "ai",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
 });
+
 
 app.get("/", (re, res) => {
   return res.json("From Backend Side");

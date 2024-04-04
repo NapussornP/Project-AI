@@ -129,7 +129,7 @@ export default function UseForm(props) {
 
       const imageBase64 = canvas.toDataURL("image/jpeg");
 
-      await axios.post("http://localhost:8081/AddUser", {
+      await axios.post(import.meta.env.VITE_API + "/AddUser", {
         CSName: values.fullName,
         role: values.role,
         img_64: imageBase64,

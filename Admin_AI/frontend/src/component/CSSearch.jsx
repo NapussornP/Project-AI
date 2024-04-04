@@ -61,7 +61,7 @@ export default function Users() {
   const [user, setUser] = useState([]);
   useEffect(() => {
     axios
-      .get("http://localhost:8081/Search")
+      .get(import.meta.env.VITE_API + "/Search")
       .then((response) => {
         setRecords(response.data);
       })

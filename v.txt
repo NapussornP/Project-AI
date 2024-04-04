@@ -53,3 +53,8 @@ import concurrent.futures
 current_directory = Path(__file__).parent
 db_path = current_directory / 'UserImage'
 image_paths = glob.glob(str(db_path / '**/*.jpg'), recursive=True)
+
+
+npm list mysql
+backend@1.0.0 C:\Users\User\OneDrive - kmutnb.ac.th\Desktop\AI\Admin_AI\Backend
+└── mysql@2.18.1
